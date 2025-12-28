@@ -37,7 +37,6 @@ class ViewController: UIViewController {
     
     let videoSize = CGSize(width: 1080, height: 1920)
     let fps: Int32 = 60
-   
     
     var topLineLayer: CALayer!
     var bottomLineLayer: CALayer!
@@ -63,6 +62,7 @@ class ViewController: UIViewController {
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         canvasView.addGestureRecognizer(pan)
         canvasView.isUserInteractionEnabled = true
+        
         createTopLine()
         animateTopLine()
         
@@ -77,15 +77,6 @@ class ViewController: UIViewController {
         
         createImageLayer(with: currentSelectedAnimation)
         animateImageFadeIn()
-        
-//        exportCanvasViewAnimationVideo(canvasView: canvasView, videoSize: CGSize(width: 1080, height: 1920), duration: DURATION) { url in
-//            if let url = url {
-//                print("🎉 Video saved to:", url)
-//                // You can now share/play the video, e.g., UISaveVideoAtPathToSavedPhotosAlbum(url.path, nil, nil, nil)
-//            } else {
-//                print("❌ Video export failed")
-//            }
-//        }
     }
     
     func animateImage(with type: AnimationType) {
@@ -608,153 +599,4 @@ extension ViewController: UICollectionViewDelegate {
         createImageLayer(with: currentSelectedAnimation)
         playAgain()
     }
-
-
-    func exportCanvasViewAnimationVideo(
-        canvasView: UIView,
-        videoSize: CGSize,
-        duration: Double,
-        fps: Int32 = 60,
-        completion: @escaping (URL?) -> Void
-    ) {
-        let totalFrames = Int(duration * Double(fps))
-        let frameDuration = CMTime(value: 1, timescale: fps)
-        
-        // Output file URL
-        let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent("animation.mp4")
-        try? FileManager.default.removeItem(at: outputURL)
-        
-        // Setup AVAssetWriter
-        guard
-            let writer = try? AVAssetWriter(outputURL: outputURL, fileType: .mp4)
-        else {
-            print("❌ Failed to create AVAssetWriter")
-            completion(nil)
-            return
-        }
-        
-        let videoSettings: [String: Any] = [
-            AVVideoCodecKey: AVVideoCodecType.h264,
-            AVVideoWidthKey: videoSize.width,
-            AVVideoHeightKey: videoSize.height,
-        ]
-        
-        let writerInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
-        writerInput.expectsMediaDataInRealTime = false
-        
-        let sourceBufferAttributes: [String: Any] = [
-            kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA),
-            kCVPixelBufferWidthKey as String: videoSize.width,
-            kCVPixelBufferHeightKey as String: videoSize.height,
-            kCVPixelFormatOpenGLESCompatibility as String: true
-        ]
-        
-        let pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(
-            assetWriterInput: writerInput,
-            sourcePixelBufferAttributes: sourceBufferAttributes
-        )
-        
-        guard writer.canAdd(writerInput) else {
-            print("❌ Cannot add input to writer")
-            completion(nil)
-            return
-        }
-        writer.add(writerInput)
-        
-        // Helper to create CVPixelBuffer from CALayer
-        func pixelBuffer(from layer: CALayer, size: CGSize) -> CVPixelBuffer? {
-            let attrs = [
-                kCVPixelBufferCGImageCompatibilityKey: true,
-                kCVPixelBufferCGBitmapContextCompatibilityKey: true
-            ] as CFDictionary
-            
-            var pixelBuffer: CVPixelBuffer?
-            let status = CVPixelBufferCreate(
-                kCFAllocatorDefault,
-                Int(size.width),
-                Int(size.height),
-                kCVPixelFormatType_32BGRA,
-                attrs,
-                &pixelBuffer
-            )
-            guard status == kCVReturnSuccess, let buffer = pixelBuffer else {
-                return nil
-            }
-            
-            CVPixelBufferLockBaseAddress(buffer, [])
-            let context = CGContext(
-                data: CVPixelBufferGetBaseAddress(buffer),
-                width: Int(size.width),
-                height: Int(size.height),
-                bitsPerComponent: 8,
-                bytesPerRow: CVPixelBufferGetBytesPerRow(buffer),
-                space: CGColorSpaceCreateDeviceRGB(),
-                bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue
-            )
-            
-            if let ctx = context {
-                ctx.clear(CGRect(origin: .zero, size: size))
-                // Render layer to context
-                layer.render(in: ctx)
-            }
-            CVPixelBufferUnlockBaseAddress(buffer, [])
-            return buffer
-        }
-        
-        // Pause animations on layer for manual time control
-        func pauseLayer(_ layer: CALayer) {
-            let pausedTime = layer.convertTime(CACurrentMediaTime(), from: nil)
-            layer.speed = 0
-            layer.timeOffset = pausedTime
-        }
-        
-        // Reset layer animation properties
-        func resetLayer(_ layer: CALayer) {
-            layer.speed = 1
-            layer.timeOffset = 0
-            layer.beginTime = 0
-        }
-        
-        // Start export process
-        writer.startWriting()
-        writer.startSession(atSourceTime: .zero)
-        
-        // Freeze the animations so we can scrub timeOffset manually
-        DispatchQueue.main.sync {
-            pauseLayer(canvasView.layer)
-        }
-        
-        var frameCount: Int64 = 0
-        
-        writerInput.requestMediaDataWhenReady(on: DispatchQueue(label: "videoQueue")) {
-            while writerInput.isReadyForMoreMediaData && frameCount < Int64(totalFrames) {
-                
-                let currentTime = Double(frameCount) / Double(fps)
-                
-                // Update animation time offset on main thread
-                DispatchQueue.main.sync {
-                    canvasView.layer.timeOffset = currentTime
-                }
-                
-                if let pixelBuffer = pixelBuffer(from: canvasView.layer, size: videoSize) {
-                    let presentationTime = CMTimeMultiply(frameDuration, multiplier: Int32(frameCount))
-                    pixelBufferAdaptor.append(pixelBuffer, withPresentationTime: presentationTime)
-                }
-                
-                frameCount += 1
-            }
-            
-            if frameCount >= Int64(totalFrames) {
-                writerInput.markAsFinished()
-                writer.finishWriting {
-                    DispatchQueue.main.async {
-                        print("✅ Video export finished at \(outputURL)")
-                        resetLayer(canvasView.layer)
-                        completion(outputURL)
-                    }
-                }
-            }
-        }
-    }
-
 }

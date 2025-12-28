@@ -145,7 +145,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = U7Z9T3JC8X;
+				DEVELOPMENT_TEAM = U8DK4S4CV4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LayerDemo/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs permission to save videos to your photo library.";
@@ -161,7 +161,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.BrainCraft.layerDemo.LayerDemo3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.BrainCraft.layerDemo.LayerDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -176,7 +176,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = U7Z9T3JC8X;
+				DEVELOPMENT_TEAM = U8DK4S4CV4;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = LayerDemo/Info.plist;
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This app needs permission to save videos to your photo library.";
@@ -192,7 +192,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.BrainCraft.layerDemo.LayerDemo3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.BrainCraft.layerDemo.LayerDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
