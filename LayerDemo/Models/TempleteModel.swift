@@ -35,26 +35,26 @@ enum AnimationType: String, Decodable, CaseIterable {
 
 protocol BaseProperty: Decodable {
     var animation: AnimationType { get set }
-    var posX: Int { get set }
-    var posY: Int { get set }
+    var posX: Double { get set }
+    var posY: Double { get set }
     var canMove: Bool { get set }
-    var width: Int { get set }
-    var hight: Int { get set }
+    var width: Double { get set }
+    var hight: Double { get set }
 }
 
 struct ImageModel: Decodable, BaseProperty {
     
     var animation: AnimationType
     
-    var posX: Int
+    var posX: Double
     
-    var posY: Int
+    var posY: Double
     
     var canMove: Bool
     
-    var width: Int
+    var width: Double
     
-    var hight: Int
+    var hight: Double
     
     var imageURL: URL?
     
@@ -64,15 +64,15 @@ struct TextModel: Decodable , BaseProperty {
     
     var animation: AnimationType
     
-    var posX: Int
+    var posX: Double
     
-    var posY: Int
+    var posY: Double
     
     var canMove: Bool
     
-    var width: Int
+    var width: Double
     
-    var hight: Int
+    var hight: Double
     
     
     var text: String
