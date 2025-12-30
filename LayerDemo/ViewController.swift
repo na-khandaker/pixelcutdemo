@@ -444,6 +444,10 @@ class ViewController: UIViewController {
         playAgain()
     }
     
+    @IBAction func exportTapped(_ sender: UIButton) {
+        
+    }
+    
     func playAgain() {
         // 1. Remove old animations
         
