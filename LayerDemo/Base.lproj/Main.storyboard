@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23727" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="oqb-0P-AvW">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="23504" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="oqb-0P-AvW">
     <device id="retina6_5" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23506"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="collection view cell content view" minToolsVersion="11.0"/>
@@ -34,25 +34,27 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="JQy-b7-Q9m">
-                                <rect key="frame" x="0.0" y="88" width="414" height="300"/>
+                                <rect key="frame" x="0.0" y="44" width="414" height="300"/>
                                 <color key="backgroundColor" systemColor="systemGray3Color"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="300" id="jJM-aZ-kG5"/>
                                 </constraints>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="6zo-Qs-qGD">
-                                <rect key="frame" x="172" y="404" width="70" height="40.333333333333314"/>
+                                <rect key="frame" x="320" y="360" width="70" height="40.333333333333314"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="70" id="eKu-K2-qi5"/>
                                 </constraints>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="filled" title="Play"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Play">
+                                    <color key="baseForegroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </buttonConfiguration>
                                 <connections>
                                     <action selector="tappedOnPlayButton:" destination="BYZ-38-t0r" eventType="touchUpInside" id="1zO-Dy-ykA"/>
                                 </connections>
                             </button>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="rgy-GS-bMg">
-                                <rect key="frame" x="0.0" y="768" width="414" height="60"/>
+                                <rect key="frame" x="0.0" y="802" width="414" height="60"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="60" id="YlA-va-79h"/>
@@ -96,17 +98,27 @@
                                     <outlet property="delegate" destination="BYZ-38-t0r" id="rhi-mm-wC2"/>
                                 </connections>
                             </collectionView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FIp-sO-Qd7">
+                                <rect key="frame" x="24" y="359.66666666666669" width="74" height="41"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Export">
+                                    <color key="baseForegroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <color key="baseBackgroundColor" systemColor="systemRedColor"/>
+                                </buttonConfiguration>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="JQy-b7-Q9m" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="4Ox-HW-KR8"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="JQy-b7-Q9m" secondAttribute="trailing" id="7o7-HV-agV"/>
+                            <constraint firstItem="FIp-sO-Qd7" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="24" id="Ie2-j6-dm3"/>
                             <constraint firstItem="6zo-Qs-qGD" firstAttribute="top" secondItem="JQy-b7-Q9m" secondAttribute="bottom" constant="16" id="RMw-XY-S7A"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="rgy-GS-bMg" secondAttribute="trailing" id="WUj-f0-5qs"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="rgy-GS-bMg" secondAttribute="bottom" id="b3n-aW-FWV"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="6zo-Qs-qGD" secondAttribute="trailing" constant="24" id="c1p-yY-1A8"/>
                             <constraint firstItem="JQy-b7-Q9m" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="c2d-Dc-TBB"/>
-                            <constraint firstItem="6zo-Qs-qGD" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="mmm-HI-e4o"/>
+                            <constraint firstItem="FIp-sO-Qd7" firstAttribute="centerY" secondItem="6zo-Qs-qGD" secondAttribute="centerY" id="dYa-xZ-q8P"/>
                             <constraint firstItem="rgy-GS-bMg" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="sFC-m4-nr5"/>
                         </constraints>
                     </view>
@@ -132,6 +144,9 @@
         </systemColor>
         <systemColor name="systemGray5Color">
             <color red="0.89803921568627454" green="0.89803921568627454" blue="0.91764705882352937" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemRedColor">
+            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
     </resources>
 </document>
