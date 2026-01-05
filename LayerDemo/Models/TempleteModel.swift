@@ -14,23 +14,23 @@ enum TempleteName {
     case OnSale
 }
 
-enum AnimationType: String, Decodable, CaseIterable {
-    
-    case None = "none"
-    case Fade = "fade"
-    case Sacel = "scale"
-    
-    case RevealUp = "revealUp"
-    case RevealDown = "revealDown"
-    case RevealLeft = "revealLeft"
-    case RevealRight = "revealRight"
-    
-    case DriftDown = "driftDown"
-    case DriftUp = "driftUp"
-    case DriftLeft = "driftLeft"
-    case DriftRight = "driftRight"
-    
-}
+//enum AnimationType: String, Decodable, CaseIterable {
+//    
+//    case None = "none"
+//    case Fade = "fade"
+//    case Sacel = "scale"
+//    
+//    case RevealUp = "revealUp"
+//    case RevealDown = "revealDown"
+//    case RevealLeft = "revealLeft"
+//    case RevealRight = "revealRight"
+//    
+//    case DriftDown = "driftDown"
+//    case DriftUp = "driftUp"
+//    case DriftLeft = "driftLeft"
+//    case DriftRight = "driftRight"
+//    
+//}
 
 
 protocol BaseProperty: Decodable {
