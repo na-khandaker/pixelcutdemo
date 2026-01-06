@@ -15,21 +15,21 @@ enum TempleteName {
 }
 
 //enum AnimationType: String, Decodable, CaseIterable {
-//    
+//
 //    case None = "none"
 //    case Fade = "fade"
 //    case Sacel = "scale"
-//    
+//
 //    case RevealUp = "revealUp"
 //    case RevealDown = "revealDown"
 //    case RevealLeft = "revealLeft"
 //    case RevealRight = "revealRight"
-//    
+//
 //    case DriftDown = "driftDown"
 //    case DriftUp = "driftUp"
 //    case DriftLeft = "driftLeft"
 //    case DriftRight = "driftRight"
-//    
+//
 //}
 
 
@@ -88,28 +88,3 @@ struct TempleteModel: Decodable {
     //    var highlight:[ImageModel?]
     var canvasBG:ImageModel?
 }
-
-
-
-//image model
-//"type" : ""
-//"animation" : ""
-//"posX" : ""
-//"posY" : ""
-//"canMove" : ""
-//"width" : ""
-//"height" : ""
-//"imageURL" : ""
-//
-//text model
-//"type" : ""
-//"animation" : ""
-//"posX" : ""
-//"posY" : ""
-//"canMove" : ""
-//"width" : ""
-//"height" : ""
-//"text" : ""
-//"fontFamilyName" : ""
-//"fontSize": ""
-//"colorString" : ""
