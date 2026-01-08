@@ -527,7 +527,9 @@ class ViewController: UIViewController {
         
         videoManager.exportVideoWithLayerAnimation(
             blankVideoURL: blankVideoURL,
-            canvasView: canvasView
+            canvasView: canvasView,
+            stickerManager: stickerManager,
+            currentAnimation: currentSelectedAnimation
         ) { [weak self] exportedURL in
             DispatchQueue.main.async {
                 alert.dismiss(animated: true) {
