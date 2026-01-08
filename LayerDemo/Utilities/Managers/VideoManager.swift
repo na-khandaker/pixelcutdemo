@@ -9,240 +9,364 @@ import UIKit
 import AVFoundation
 
 class VideoManager {
-  func exportVideoWithLayerAnimation(at videoURL: URL, forName name: String, onComplete: @escaping (URL?) -> Void) {
-    print(videoURL)
-    let asset = AVURLAsset(url: videoURL)
-    let composition = AVMutableComposition()
     
-    guard
-      let compositionTrack = composition.addMutableTrack(
-        withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
-      let assetTrack = asset.tracks(withMediaType: .video).first
-      else {
-        print("Something is wrong with the asset.")
-        onComplete(nil)
-        return
-    }
+    // MARK: - Properties
+    private let DURATION: TimeInterval = 1.2 // Match your animation duration
     
-    do {
-      let timeRange = CMTimeRange(start: .zero, duration: asset.duration)
-      try compositionTrack.insertTimeRange(timeRange, of: assetTrack, at: .zero)
-      
-      if let audioAssetTrack = asset.tracks(withMediaType: .audio).first,
-        let compositionAudioTrack = composition.addMutableTrack(
-          withMediaType: .audio,
-          preferredTrackID: kCMPersistentTrackID_Invalid) {
-        try compositionAudioTrack.insertTimeRange(
-          timeRange,
-          of: audioAssetTrack,
-          at: .zero)
-      }
-    } catch {
-      print(error)
-      onComplete(nil)
-      return
-    }
-    
-    compositionTrack.preferredTransform = assetTrack.preferredTransform
-    let videoInfo = orientation(from: assetTrack.preferredTransform)
-    
-    let videoSize: CGSize
-    if videoInfo.isPortrait {
-      videoSize = CGSize(
-        width: assetTrack.naturalSize.height,
-        height: assetTrack.naturalSize.width)
-    } else {
-      videoSize = assetTrack.naturalSize
-    }
-    
-    let backgroundLayer = CALayer()
-    backgroundLayer.frame = CGRect(origin: .zero, size: videoSize)
-    let videoLayer = CALayer()
-    videoLayer.frame = CGRect(origin: .zero, size: videoSize)
-    let overlayLayer = CALayer()
-    overlayLayer.frame = CGRect(origin: .zero, size: videoSize)
-    
-    backgroundLayer.backgroundColor = UIColor(named: "rw-green")?.cgColor
-    videoLayer.frame = CGRect(
-      x: 20,
-      y: 20,
-      width: videoSize.width - 40,
-      height: videoSize.height - 40)
-    
-    backgroundLayer.contents = UIImage(named: "background")?.cgImage
-    backgroundLayer.contentsGravity = .resizeAspectFill
-    
-    addConfetti(to: overlayLayer)
-    addImage(to: overlayLayer, videoSize: videoSize)
-    
-    add(
-      text: "Happy Birthday,\n\(name)",
-      to: overlayLayer,
-      videoSize: videoSize)
-    
-    let outputLayer = CALayer()
-    outputLayer.frame = CGRect(origin: .zero, size: videoSize)
-    outputLayer.addSublayer(backgroundLayer)
-    outputLayer.addSublayer(videoLayer)
-    outputLayer.addSublayer(overlayLayer)
-    
-    let videoComposition = AVMutableVideoComposition()
-    videoComposition.renderSize = videoSize
-    videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
-    videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(
-      postProcessingAsVideoLayer: videoLayer,
-      in: outputLayer)
-    
-    let instruction = AVMutableVideoCompositionInstruction()
-    instruction.timeRange = CMTimeRange(
-      start: .zero,
-      duration: composition.duration)
-    videoComposition.instructions = [instruction]
-    let layerInstruction = compositionLayerInstruction(
-      for: compositionTrack,
-      assetTrack: assetTrack)
-    instruction.layerInstructions = [layerInstruction]
-    
-    guard let export = AVAssetExportSession(
-      asset: composition,
-      presetName: AVAssetExportPresetHighestQuality)
-      else {
-        print("Cannot create export session.")
-        onComplete(nil)
-        return
-    }
-    
-    let videoName = UUID().uuidString
-    let exportURL = URL(fileURLWithPath: NSTemporaryDirectory())
-      .appendingPathComponent(videoName)
-      .appendingPathExtension("mov")
-    
-    export.videoComposition = videoComposition
-    export.outputFileType = .mov
-    export.outputURL = exportURL
-    
-    export.exportAsynchronously {
-      DispatchQueue.main.async {
-        switch export.status {
-        case .completed:
-          onComplete(exportURL)
-        default:
-          print("Something went wrong during export.")
-          print(export.error ?? "unknown error")
-          onComplete(nil)
-          break
+    // MARK: - Public Methods
+    func exportVideoWithLayerAnimation(
+        blankVideoURL: URL,
+        canvasView: UIView,
+        onComplete: @escaping (URL?) -> Void
+    ) {
+        // Create a composition with repeated blank video
+        guard let repeatedComposition = createRepeatedVideoComposition(
+            from: blankVideoURL,
+            targetDuration: DURATION
+        ) else {
+            print("Failed to create repeated video composition")
+            onComplete(nil)
+            return
         }
-      }
-    }
-  }
-  
-  private func addImage(to layer: CALayer, videoSize: CGSize) {
-    let image = UIImage(named: "overlay")!
-    let imageLayer = CALayer()
-    
-    let aspect: CGFloat = image.size.width / image.size.height
-    let width = videoSize.width
-    let height = width / aspect
-    imageLayer.frame = CGRect(
-      x: 0,
-      y: -height * 0.15,
-      width: width,
-      height: height)
-    
-    imageLayer.contents = image.cgImage
-    layer.addSublayer(imageLayer)
-  }
-  
-  private func add(text: String, to layer: CALayer, videoSize: CGSize) {
-    let attributedText = NSAttributedString(
-      string: text,
-      attributes: [
-        .font: UIFont(name: "ArialRoundedMTBold", size: 60) as Any,
-        .foregroundColor: UIColor(named: "rw-green")!,
-        .strokeColor: UIColor.white,
-        .strokeWidth: -3])
-    
-    let textLayer = CATextLayer()
-    textLayer.string = attributedText
-    textLayer.shouldRasterize = true
-    textLayer.rasterizationScale = UIScreen.main.scale
-    textLayer.backgroundColor = UIColor.clear.cgColor
-    textLayer.alignmentMode = .center
-    
-    textLayer.frame = CGRect(
-      x: 0,
-      y: videoSize.height * 0.66,
-      width: videoSize.width,
-      height: 150)
-    textLayer.displayIfNeeded()
-    
-    let scaleAnimation = CABasicAnimation(keyPath: "transform.scale")
-    scaleAnimation.fromValue = 0.8
-    scaleAnimation.toValue = 1.2
-    scaleAnimation.duration = 0.5
-    scaleAnimation.repeatCount = .greatestFiniteMagnitude
-    scaleAnimation.autoreverses = true
-    scaleAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-    
-    scaleAnimation.beginTime = AVCoreAnimationBeginTimeAtZero
-    scaleAnimation.isRemovedOnCompletion = false
-    textLayer.add(scaleAnimation, forKey: "scale")
-    
-    layer.addSublayer(textLayer)
-  }
-  
-  private func orientation(from transform: CGAffineTransform) -> (orientation: UIImage.Orientation, isPortrait: Bool) {
-    var assetOrientation = UIImage.Orientation.up
-    var isPortrait = false
-    if transform.a == 0 && transform.b == 1.0 && transform.c == -1.0 && transform.d == 0 {
-      assetOrientation = .right
-      isPortrait = true
-    } else if transform.a == 0 && transform.b == -1.0 && transform.c == 1.0 && transform.d == 0 {
-      assetOrientation = .left
-      isPortrait = true
-    } else if transform.a == 1.0 && transform.b == 0 && transform.c == 0 && transform.d == 1.0 {
-      assetOrientation = .up
-    } else if transform.a == -1.0 && transform.b == 0 && transform.c == 0 && transform.d == -1.0 {
-      assetOrientation = .down
+        
+        // Get the asset track
+        guard let assetTrack = repeatedComposition.tracks(withMediaType: .video).first else {
+            print("No video track found")
+            onComplete(nil)
+            return
+        }
+        
+        // Get the final video size based on canvas aspect ratio
+        let videoSize = getVideoSize(from: canvasView)
+        
+        // Create the video composition with canvas layers
+        guard let videoComposition = createVideoComposition(
+            composition: repeatedComposition,
+            assetTrack: assetTrack,
+            canvasView: canvasView,
+            videoSize: videoSize
+        ) else {
+            print("Failed to create video composition")
+            onComplete(nil)
+            return
+        }
+        
+        // Export the video
+        exportVideo(
+            composition: repeatedComposition,
+            videoComposition: videoComposition,
+            videoSize: videoSize,
+            onComplete: onComplete
+        )
     }
     
-    return (assetOrientation, isPortrait)
-  }
-  
-  private func compositionLayerInstruction(for track: AVCompositionTrack, assetTrack: AVAssetTrack) -> AVMutableVideoCompositionLayerInstruction {
-    let instruction = AVMutableVideoCompositionLayerInstruction(assetTrack: track)
-    let transform = assetTrack.preferredTransform
+    // MARK: - Private Methods
     
-    instruction.setTransform(transform, at: .zero)
-    
-    return instruction
-  }
-  
-  private func addConfetti(to layer: CALayer) {
-    let images: [UIImage] = (0...5).map { UIImage(named: "confetti\($0)")! }
-    let colors: [UIColor] = [.systemGreen, .systemRed, .systemBlue, .systemPink, .systemOrange, .systemPurple, .systemYellow]
-    let cells: [CAEmitterCell] = (0...16).map { _ in
-      let cell = CAEmitterCell()
-      cell.contents = images.randomElement()?.cgImage
-      cell.birthRate = 3
-      cell.lifetime = 12
-      cell.lifetimeRange = 0
-      cell.velocity = CGFloat.random(in: 100...200)
-      cell.velocityRange = 0
-      cell.emissionLongitude = 0
-      cell.emissionRange = 0.8
-      cell.spin = 4
-      cell.color = colors.randomElement()?.cgColor
-      cell.scale = CGFloat.random(in: 0.2...0.8)
-      return cell
+    private func createRepeatedVideoComposition(
+        from videoURL: URL,
+        targetDuration: TimeInterval
+    ) -> AVMutableComposition? {
+        let asset = AVURLAsset(url: videoURL)
+        let composition = AVMutableComposition()
+        
+        guard
+            let compositionVideoTrack = composition.addMutableTrack(
+                withMediaType: .video,
+                preferredTrackID: kCMPersistentTrackID_Invalid
+            ),
+            let assetVideoTrack = asset.tracks(withMediaType: .video).first
+        else {
+            print("Failed to create composition tracks")
+            return nil
+        }
+        
+        let videoDuration = asset.duration
+        let targetCMTime = CMTime(seconds: targetDuration, preferredTimescale: 600)
+        var currentTime = CMTime.zero
+        
+        do {
+            // Repeat the blank video until we reach target duration
+            while currentTime < targetCMTime {
+                let timeRange = CMTimeRange(start: .zero, duration: videoDuration)
+                let insertDuration = min(videoDuration, CMTimeSubtract(targetCMTime, currentTime))
+                let insertRange = CMTimeRange(start: .zero, duration: insertDuration)
+                
+                try compositionVideoTrack.insertTimeRange(insertRange, of: assetVideoTrack, at: currentTime)
+                currentTime = CMTimeAdd(currentTime, insertDuration)
+            }
+            
+            // Add audio if available
+            if let assetAudioTrack = asset.tracks(withMediaType: .audio).first,
+               let compositionAudioTrack = composition.addMutableTrack(
+                withMediaType: .audio,
+                preferredTrackID: kCMPersistentTrackID_Invalid
+               ) {
+                currentTime = CMTime.zero
+                while currentTime < targetCMTime {
+                    let timeRange = CMTimeRange(start: .zero, duration: videoDuration)
+                    let insertDuration = min(videoDuration, CMTimeSubtract(targetCMTime, currentTime))
+                    let insertRange = CMTimeRange(start: .zero, duration: insertDuration)
+                    
+                    try compositionAudioTrack.insertTimeRange(insertRange, of: assetAudioTrack, at: currentTime)
+                    currentTime = CMTimeAdd(currentTime, insertDuration)
+                }
+            }
+        } catch {
+            print("Error inserting time ranges: \(error)")
+            return nil
+        }
+        
+        compositionVideoTrack.preferredTransform = assetVideoTrack.preferredTransform
+        return composition
     }
     
-    let emitter = CAEmitterLayer()
-    emitter.emitterPosition = CGPoint(x: layer.frame.size.width / 2, y: layer.frame.size.height + 5)
-    emitter.emitterShape = .line
-    emitter.emitterSize = CGSize(width: layer.frame.size.width, height: 2)
-    emitter.emitterCells = cells
+    private func getVideoSize(from canvasView: UIView) -> CGSize {
+        // Use the canvasView's aspect ratio to determine video size
+        let aspectRatio = canvasView.bounds.width / canvasView.bounds.height
+        
+        // Standard video sizes with same aspect ratio
+        let baseHeight: CGFloat = 1920
+        let baseWidth = baseHeight * aspectRatio
+        
+        // Round to even numbers (required by video codecs)
+        let width = (baseWidth / 2).rounded() * 2
+        let height = (baseHeight / 2).rounded() * 2
+        
+        return CGSize(width: width, height: height)
+    }
     
-    layer.addSublayer(emitter)
-  }
+    private func createVideoComposition(
+        composition: AVMutableComposition,
+        assetTrack: AVAssetTrack,
+        canvasView: UIView,
+        videoSize: CGSize
+    ) -> AVMutableVideoComposition? {
+        
+        // Create video composition
+        let videoComposition = AVMutableVideoComposition()
+        videoComposition.renderSize = videoSize
+        videoComposition.frameDuration = CMTime(value: 1, timescale: 60) // 60 FPS
+        
+        // Create video layer that will show the blank video
+        let videoLayer = CALayer()
+        videoLayer.frame = CGRect(origin: .zero, size: videoSize)
+        
+        // Create overlay layer with all canvas layers
+        let overlayLayer = createOverlayLayer(from: canvasView, videoSize: videoSize)
+        
+        // Create parent layer that combines video and overlay
+        let parentLayer = CALayer()
+        parentLayer.frame = CGRect(origin: .zero, size: videoSize)
+        parentLayer.addSublayer(videoLayer) // Video layer at the bottom
+        parentLayer.addSublayer(overlayLayer) // Canvas layers on top
+        
+        // Set up the animation tool with proper layering
+        videoComposition.animationTool = AVVideoCompositionCoreAnimationTool(
+            postProcessingAsVideoLayer: videoLayer,
+            in: parentLayer
+        )
+        
+        // Create instructions
+        let instruction = AVMutableVideoCompositionInstruction()
+        instruction.timeRange = CMTimeRange(
+            start: .zero,
+            duration: composition.duration
+        )
+        
+        let layerInstruction = compositionLayerInstruction(
+            for: assetTrack as! AVCompositionTrack,
+            transform: assetTrack.preferredTransform
+        )
+        instruction.layerInstructions = [layerInstruction]
+        
+        videoComposition.instructions = [instruction]
+        
+        return videoComposition
+    }
+    
+    private func createOverlayLayer(from canvasView: UIView, videoSize: CGSize) -> CALayer {
+        let overlayLayer = CALayer()
+        overlayLayer.frame = CGRect(origin: .zero, size: videoSize)
+        
+        // Get all sublayers from canvasView
+        guard let canvasSublayers = canvasView.layer.sublayers else {
+            return overlayLayer
+        }
+        
+        let scaleX = videoSize.width / canvasView.bounds.width
+        let scaleY = videoSize.height / canvasView.bounds.height
+        
+        // Create a copy of each layer with proper scaling
+        for originalLayer in canvasSublayers {
+            let videoLayer = createVideoLayer(from: originalLayer, scaleX: scaleX, scaleY: scaleY)
+            overlayLayer.addSublayer(videoLayer)
+        }
+        
+        return overlayLayer
+    }
+    
+    private func createVideoLayer(from originalLayer: CALayer, scaleX: CGFloat, scaleY: CGFloat) -> CALayer {
+        let videoLayer = CALayer()
+        
+        // Copy basic properties
+        videoLayer.contents = originalLayer.contents
+        videoLayer.backgroundColor = originalLayer.backgroundColor
+        videoLayer.opacity = originalLayer.opacity
+        videoLayer.cornerRadius = originalLayer.cornerRadius
+        videoLayer.borderWidth = originalLayer.borderWidth
+        videoLayer.borderColor = originalLayer.borderColor
+        videoLayer.masksToBounds = originalLayer.masksToBounds
+        videoLayer.contentsGravity = originalLayer.contentsGravity
+        videoLayer.contentsScale = originalLayer.contentsScale
+        
+        // Scale position and size for video
+        videoLayer.frame = CGRect(
+            x: originalLayer.frame.origin.x * scaleX,
+            y: originalLayer.frame.origin.y * scaleY,
+            width: originalLayer.frame.width * scaleX,
+            height: originalLayer.frame.height * scaleY
+        )
+        
+        // Apply transform
+        videoLayer.transform = originalLayer.transform
+        
+        // Copy all animations with proper timing for video export
+        copyAnimations(from: originalLayer, to: videoLayer)
+        
+        // Recursively add sublayers if this layer has any
+        if let originalSublayers = originalLayer.sublayers {
+            for originalSublayer in originalSublayers {
+                let videoSublayer = createVideoLayer(from: originalSublayer, scaleX: scaleX, scaleY: scaleY)
+                videoLayer.addSublayer(videoSublayer)
+            }
+        }
+        
+        return videoLayer
+    }
+    
+    private func copyAnimations(from sourceLayer: CALayer, to destinationLayer: CALayer) {
+        guard let animationKeys = sourceLayer.animationKeys() else { return }
+        
+        for key in animationKeys {
+            if let animation = sourceLayer.animation(forKey: key)?.copy() as? CAAnimation {
+                // Configure animation for video export
+                animation.beginTime = AVCoreAnimationBeginTimeAtZero
+                animation.isRemovedOnCompletion = false
+                animation.fillMode = .forwards
+                
+                // Handle special animations like CAEmitterLayer
+                if key == "lineGrowth" || key == "pulse" || key == "scale" {
+                    // Ensure animations play from the beginning
+                    animation.beginTime = AVCoreAnimationBeginTimeAtZero
+                }
+                
+                // Handle CAEmitterLayer animations
+                if sourceLayer is CAEmitterLayer {
+                    // For emitter layers, we need to handle them specially
+                    handleEmitterLayerAnimations(sourceLayer: sourceLayer, destinationLayer: destinationLayer)
+                    continue
+                }
+                
+                destinationLayer.add(animation, forKey: key)
+            }
+        }
+    }
+    
+    private func handleEmitterLayerAnimations(sourceLayer: CALayer, destinationLayer: CALayer) {
+        guard let emitterSource = sourceLayer as? CAEmitterLayer,
+              let emitterDest = destinationLayer as? CAEmitterLayer else { return }
+        
+        // Copy emitter properties
+        emitterDest.emitterPosition = emitterSource.emitterPosition
+        emitterDest.emitterSize = emitterSource.emitterSize
+        emitterDest.emitterShape = emitterSource.emitterShape
+        emitterDest.emitterMode = emitterSource.emitterMode
+        emitterDest.renderMode = emitterSource.renderMode
+        emitterDest.emitterCells = emitterSource.emitterCells?.map { copyEmitterCell($0) }
+        emitterDest.beginTime = AVCoreAnimationBeginTimeAtZero
+        emitterDest.birthRate = emitterSource.birthRate
+    }
+    
+    private func copyEmitterCell(_ cell: CAEmitterCell) -> CAEmitterCell {
+        let newCell = CAEmitterCell()
+        
+        // Copy all properties
+        newCell.contents = cell.contents
+        newCell.birthRate = cell.birthRate
+        newCell.lifetime = cell.lifetime
+        newCell.lifetimeRange = cell.lifetimeRange
+        newCell.velocity = cell.velocity
+        newCell.velocityRange = cell.velocityRange
+        newCell.emissionLongitude = cell.emissionLongitude
+        newCell.emissionRange = cell.emissionRange
+        newCell.spin = cell.spin
+        newCell.spinRange = cell.spinRange
+        newCell.scale = cell.scale
+        newCell.scaleRange = cell.scaleRange
+        newCell.scaleSpeed = cell.scaleSpeed
+        newCell.color = cell.color
+        newCell.redRange = cell.redRange
+        newCell.greenRange = cell.greenRange
+        newCell.blueRange = cell.blueRange
+        newCell.alphaRange = cell.alphaRange
+        newCell.redSpeed = cell.redSpeed
+        newCell.greenSpeed = cell.greenSpeed
+        newCell.blueSpeed = cell.blueSpeed
+        newCell.alphaSpeed = cell.alphaSpeed
+        
+        return newCell
+    }
+    
+    private func compositionLayerInstruction(
+        for track: AVCompositionTrack,
+        transform: CGAffineTransform
+    ) -> AVMutableVideoCompositionLayerInstruction {
+        let instruction = AVMutableVideoCompositionLayerInstruction(assetTrack: track)
+        instruction.setTransform(transform, at: .zero)
+        return instruction
+    }
+    
+    private func exportVideo(
+        composition: AVMutableComposition,
+        videoComposition: AVMutableVideoComposition,
+        videoSize: CGSize,
+        onComplete: @escaping (URL?) -> Void
+    ) {
+        guard let export = AVAssetExportSession(
+            asset: composition,
+            presetName: AVAssetExportPresetHighestQuality
+        ) else {
+            print("Cannot create export session.")
+            onComplete(nil)
+            return
+        }
+        
+        let videoName = "exported_video_\(Date().timeIntervalSince1970)"
+        let exportURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(videoName)
+            .appendingPathExtension("mov")
+        
+        export.videoComposition = videoComposition
+        export.outputFileType = .mov
+        export.outputURL = exportURL
+        
+        export.exportAsynchronously {
+            DispatchQueue.main.async {
+                switch export.status {
+                case .completed:
+                    print("✅ Video exported successfully to: \(exportURL)")
+                    onComplete(exportURL)
+                case .failed:
+                    print("❌ Export failed: \(export.error?.localizedDescription ?? "Unknown error")")
+                    onComplete(nil)
+                case .cancelled:
+                    print("Export cancelled")
+                    onComplete(nil)
+                default:
+                    print("Export status: \(export.status.rawValue)")
+                    onComplete(nil)
+                }
+            }
+        }
+    }
 }

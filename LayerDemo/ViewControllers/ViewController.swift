@@ -512,17 +512,60 @@ class ViewController: UIViewController {
     
     // MARK: - Export
     private func exportAnimatedVideo() {
-//        PHPhotoLibrary.requestAuthorization { [weak self] status in
-//            DispatchQueue.main.async {
-//                guard let self = self else { return }
-//                
-//                if status == .authorized {
-//                    self.performVideoExport()
-//                } else {
-//                    self.showPhotoLibraryAccessAlert()
-//                }
-//            }
-//        }
+        // Get the path to your blank video
+        guard let blankVideoURL = Bundle.main.url(forResource: "square_blank", withExtension: "mov") else {
+            showAlert(message: "Blank video not found in bundle")
+            return
+        }
+        
+        // Show loading indicator
+        let alert = UIAlertController(title: "Exporting", message: "Please wait...", preferredStyle: .alert)
+        present(alert, animated: true)
+        
+        // Create video manager and export
+        let videoManager = VideoManager()
+        
+        videoManager.exportVideoWithLayerAnimation(
+            blankVideoURL: blankVideoURL,
+            canvasView: canvasView
+        ) { [weak self] exportedURL in
+            DispatchQueue.main.async {
+                alert.dismiss(animated: true) {
+                    guard let self = self else { return }
+                    
+                    if let url = exportedURL {
+                        self.saveVideoToPhotos(url: url)
+                    } else {
+                        self.showAlert(message: "Failed to export video")
+                    }
+                }
+            }
+        }
+    }
+    
+    private func saveVideoToPhotos(url: URL) {
+        PHPhotoLibrary.requestAuthorization { status in
+            if status == .authorized {
+                PHPhotoLibrary.shared().performChanges({
+                    PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+                }) { saved, error in
+                    DispatchQueue.main.async {
+                        if saved {
+                            self.showAlert(message: "Video saved to Photos!")
+                        } else {
+                            self.showAlert(message: "Failed to save video: \(error?.localizedDescription ?? "Unknown error")")
+                        }
+                        
+                        // Clean up temporary file
+                        try? FileManager.default.removeItem(at: url)
+                    }
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.showPhotoLibraryAccessAlert()
+                }
+            }
+        }
     }
     
     private func showPhotoLibraryAccessAlert() {
