@@ -1,5 +1,5 @@
 //
-//  StickerModel.swift
+//  StickerConfiguration.swift
 //  LayerDemo
 //
 //  Created by BCL Device 5 on 8/1/26.
@@ -7,67 +7,44 @@
 
 import UIKit
 
-// MARK: - Base Sticker Model
-class StickerModel {
-    let id: String
-    var type: StickerType
-    var layer: CALayer?
-    var reflectionLayer: CALayer?
+// MARK: - Base Configuration
+class StickerConfiguration {
     var position: CGPoint
     var size: CGSize
-    var rotation: CGFloat = 0
-    var scale: CGFloat = 1.0
     var color: UIColor?
     var zIndex: Int = 0
-    var isSelected: Bool = false
     var hasReflection: Bool = false
     var opacity: Float = 1.0
     
-    // For lines
-    var isHorizontal: Bool? = nil
-    var initialEdge: Edge? = nil
-    
-    init(id: String = UUID().uuidString,
-         type: StickerType,
-         position: CGPoint,
-         size: CGSize,
+    init(position: CGPoint, 
+         size: CGSize, 
          color: UIColor? = nil,
          zIndex: Int = 0,
          hasReflection: Bool = false,
-         opacity: Float = 1.0,
-         isHorizontal: Bool? = nil,
-         initialEdge: Edge? = nil) {
-        self.id = id
-        self.type = type
+         opacity: Float = 1.0) {
         self.position = position
         self.size = size
         self.color = color
         self.zIndex = zIndex
         self.hasReflection = hasReflection
         self.opacity = opacity
-        self.isHorizontal = isHorizontal
-        self.initialEdge = initialEdge
     }
 }
 
-// MARK: - Image Sticker Model
-class ImageStickerModel: StickerModel {
+// MARK: - Image Sticker Configuration
+class ImageStickerConfiguration: StickerConfiguration {
     var image: UIImage
     
-    init(id: String = UUID().uuidString,
+    init(position: CGPoint, 
+         size: CGSize, 
          image: UIImage,
-         position: CGPoint,
-         size: CGSize,
          color: UIColor? = nil,
          zIndex: Int = 0,
          hasReflection: Bool = false,
          opacity: Float = 1.0) {
         self.image = image
-        
-        super.init(id: id,
-                   type: .image,
-                   position: position,
-                   size: size,
+        super.init(position: position, 
+                   size: size, 
                    color: color,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
@@ -75,18 +52,17 @@ class ImageStickerModel: StickerModel {
     }
 }
 
-// MARK: - Text Sticker Model
-class TextStickerModel: StickerModel {
+// MARK: - Text Sticker Configuration
+class TextStickerConfiguration: StickerConfiguration {
     var text: String
     var fontSize: CGFloat
     var fontName: String?
     var textColor: UIColor
     var textAlignment: NSTextAlignment = .center
     
-    init(id: String = UUID().uuidString,
+    init(position: CGPoint, 
+         size: CGSize, 
          text: String,
-         position: CGPoint,
-         size: CGSize,
          fontSize: CGFloat = 36,
          fontName: String? = nil,
          textColor: UIColor = .white,
@@ -99,10 +75,8 @@ class TextStickerModel: StickerModel {
         self.fontName = fontName
         self.textColor = textColor
         
-        super.init(id: id,
-                   type: .text,
-                   position: position,
-                   size: size,
+        super.init(position: position, 
+                   size: size, 
                    color: backgroundColor,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
@@ -110,14 +84,13 @@ class TextStickerModel: StickerModel {
     }
 }
 
-// MARK: - Shape Sticker Model
-class ShapeStickerModel: StickerModel {
+// MARK: - Shape Sticker Configuration
+class ShapeStickerConfiguration: StickerConfiguration {
     var shapeType: ShapeType = .rectangle
     var cornerRadius: CGFloat = 0
     
-    init(id: String = UUID().uuidString,
-         position: CGPoint,
-         size: CGSize,
+    init(position: CGPoint, 
+         size: CGSize, 
          color: UIColor,
          shapeType: ShapeType = .rectangle,
          cornerRadius: CGFloat = 0,
@@ -127,10 +100,8 @@ class ShapeStickerModel: StickerModel {
         self.shapeType = shapeType
         self.cornerRadius = cornerRadius
         
-        super.init(id: id,
-                   type: .shape,
-                   position: position,
-                   size: size,
+        super.init(position: position, 
+                   size: size, 
                    color: color,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
@@ -138,13 +109,14 @@ class ShapeStickerModel: StickerModel {
     }
 }
 
-// MARK: - Line Sticker Model
-class LineStickerModel: StickerModel {
+// MARK: - Line Sticker Configuration
+class LineStickerConfiguration: StickerConfiguration {
+    var isHorizontal: Bool?
+    var initialEdge: Edge?
     var lineWidth: CGFloat = 12.0
     
-    init(id: String = UUID().uuidString,
-         position: CGPoint,
-         size: CGSize,
+    init(position: CGPoint, 
+         size: CGSize, 
          color: UIColor,
          isHorizontal: Bool? = nil,
          initialEdge: Edge? = nil,
@@ -152,18 +124,15 @@ class LineStickerModel: StickerModel {
          zIndex: Int = 0,
          hasReflection: Bool = false,
          opacity: Float = 1.0) {
+        self.isHorizontal = isHorizontal
+        self.initialEdge = initialEdge
         self.lineWidth = lineWidth
         
-        super.init(id: id,
-                   type: .line,
-                   position: position,
-                   size: size,
+        super.init(position: position, 
+                   size: size, 
                    color: color,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
-                   opacity: opacity,
-                   isHorizontal: isHorizontal,
-                   initialEdge: initialEdge)
+                   opacity: opacity)
     }
 }
-

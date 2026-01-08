@@ -11,4 +11,5 @@ enum StickerType {
     case line
     case image
     case shape
+    case text
 }

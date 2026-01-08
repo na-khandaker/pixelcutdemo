@@ -1,3 +1,6 @@
+//
+//  ViewController.swift
+//
 import UIKit
 import Photos
 import AVFoundation
@@ -7,18 +10,13 @@ import MobileCoreServices
 class ViewController: UIViewController {
     
     // MARK: - Properties
-    private var currentSelectedAnimation: AnimationType = .DriftUp
+    private var currentSelectedAnimation: AnimationType = .RevealRight
     private var stickerManager = StickerManager()
     private var imageCounter = 0
     
     // MARK: - IBOutlets
     @IBOutlet weak var animationCollectionView: UICollectionView!
     @IBOutlet weak var canvasView: UIView!
-    //    @IBOutlet weak var addImageButton: UIButton!
-    //    @IBOutlet weak var addLineButton: UIButton!
-    //    @IBOutlet weak var deleteButton: UIButton!
-    //    @IBOutlet weak var playButton: UIButton!
-    //    @IBOutlet weak var exportButton: UIButton!
     
     // MARK: - Constants
     private let LINE_WIDTH: CGFloat = 12.0
@@ -36,7 +34,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         canvasView.layer.masksToBounds = true
-        setupUI()
+        //setupUI()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -45,36 +43,6 @@ class ViewController: UIViewController {
         createInitialStickers()
         animateAllStickers()
     }
-    
-    // MARK: - Setup Methods
-    private func setupUI() {
-        //setupCollectionView()
-        //setupButtons()
-    }
-    
-    private func setupCollectionView() {
-        animationCollectionView.dataSource = self
-        animationCollectionView.delegate = self
-        if let nib = UINib(nibName: "AnimationCollectionViewCell", bundle: nil) as? UINib {
-            animationCollectionView.register(nib, forCellWithReuseIdentifier: "AnimationCollectionViewCell")
-        }
-    }
-    
-    //    private func setupButtons() {
-    //        addImageButton.addTarget(self, action: #selector(addImageTapped), for: .touchUpInside)
-    //        addLineButton.addTarget(self, action: #selector(addLineTapped), for: .touchUpInside)
-    //        deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
-    //        playButton.addTarget(self, action: #selector(playTapped), for: .touchUpInside)
-    //        exportButton.addTarget(self, action: #selector(exportTapped), for: .touchUpInside)
-    //
-    //        deleteButton.isHidden = true
-    //
-    //        // Style buttons
-    //        [addImageButton, addLineButton, deleteButton, playButton, exportButton].forEach { button in
-    //            button?.layer.cornerRadius = 8
-    //            button?.layer.masksToBounds = true
-    //        }
-    //    }
     
     private func setupGestures() {
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
@@ -96,49 +64,108 @@ class ViewController: UIViewController {
     private func createInitialStickers() {
         createEdgeLines()
         createInitialImage()
+        createInitialText()
+    }
+
+    private func createInitialText() {
+        let canvasBounds = canvasView.bounds
+        
+        // Create a text sticker with reflection
+        let textConfig = TextStickerConfiguration(
+            position: CGPoint(x: canvasBounds.midX, y: canvasBounds.midY - 150),
+            size: CGSize(width: 300, height: 80),
+            text: "Hello World!",
+            fontSize: 36,
+            fontName: "Helvetica-Bold",
+            textColor: .white,
+            backgroundColor: .clear,
+            zIndex: 20,
+            hasReflection: true,
+            opacity: 1.0
+        )
+        
+        let textSticker = StickerFactory.shared.createTextSticker(configuration: textConfig)
+        addStickerToCanvas(textSticker)
+//        
+//        // Create another text sticker with different properties
+//        let textConfig2 = TextStickerConfiguration(
+//            position: CGPoint(x: canvasBounds.midX, y: canvasBounds.midY + 150),
+//            size: CGSize(width: 250, height: 60),
+//            text: "Reflection Demo",
+//            fontSize: 28,
+//            fontName: "ARIAL",
+//            textColor: UIColor.systemPink,
+//            backgroundColor: UIColor.black.withAlphaComponent(0.3),
+//            zIndex: 21,
+//            hasReflection: false,
+//            opacity: 0.9
+//        )
+//        
+//        let textSticker2 = StickerFactory.shared.createTextSticker(configuration: textConfig2)
+//        addStickerToCanvas(textSticker2)
     }
     
     private func createEdgeLines() {
         let canvasBounds = canvasView.bounds
         
         // Top line
-        let topConfig = StickerConfiguration(
+        let topConfig = LineStickerConfiguration(
             position: CGPoint(x: 0, y: LINE_WIDTH / 2),
             size: CGSize(width: 1, height: LINE_WIDTH),
-            edge: .top,
-            zIndex: 0
+            color: .systemBlue,
+            isHorizontal: true,
+            initialEdge: .top,
+            lineWidth: LINE_WIDTH,
+            zIndex: 0,
+            hasReflection: false,
+            opacity: 1.0
         )
-        let topSticker = StickerFactory.shared.createSticker(type: .line, configuration: topConfig)
+        let topSticker = StickerFactory.shared.createLineSticker(configuration: topConfig)
         addStickerToCanvas(topSticker)
         
         // Bottom line
-        let bottomConfig = StickerConfiguration(
+        let bottomConfig = LineStickerConfiguration(
             position: CGPoint(x: canvasBounds.width, y: canvasBounds.height - LINE_WIDTH / 2),
             size: CGSize(width: 1, height: LINE_WIDTH),
-            edge: .bottom,
-            zIndex: 1
+            color: .systemRed,
+            isHorizontal: true,
+            initialEdge: .bottom,
+            lineWidth: LINE_WIDTH,
+            zIndex: 1,
+            hasReflection: false,
+            opacity: 1.0
         )
-        let bottomSticker = StickerFactory.shared.createSticker(type: .line, configuration: bottomConfig)
+        let bottomSticker = StickerFactory.shared.createLineSticker(configuration: bottomConfig)
         addStickerToCanvas(bottomSticker)
         
         // Left line
-        let leftConfig = StickerConfiguration(
+        let leftConfig = LineStickerConfiguration(
             position: CGPoint(x: LINE_WIDTH / 2, y: 0),
             size: CGSize(width: LINE_WIDTH, height: 1),
-            edge: .left,
-            zIndex: 2
+            color: .systemGreen,
+            isHorizontal: false,
+            initialEdge: .left,
+            lineWidth: LINE_WIDTH,
+            zIndex: 2,
+            hasReflection: false,
+            opacity: 1.0
         )
-        let leftSticker = StickerFactory.shared.createSticker(type: .line, configuration: leftConfig)
+        let leftSticker = StickerFactory.shared.createLineSticker(configuration: leftConfig)
         addStickerToCanvas(leftSticker)
         
         // Right line
-        let rightConfig = StickerConfiguration(
+        let rightConfig = LineStickerConfiguration(
             position: CGPoint(x: canvasBounds.width - LINE_WIDTH / 2, y: canvasBounds.height),
             size: CGSize(width: LINE_WIDTH, height: 1),
-            edge: .right,
-            zIndex: 3
+            color: .systemOrange,
+            isHorizontal: false,
+            initialEdge: .right,
+            lineWidth: LINE_WIDTH,
+            zIndex: 3,
+            hasReflection: false,
+            opacity: 1.0
         )
-        let rightSticker = StickerFactory.shared.createSticker(type: .line, configuration: rightConfig)
+        let rightSticker = StickerFactory.shared.createLineSticker(configuration: rightConfig)
         addStickerToCanvas(rightSticker)
     }
     
@@ -146,32 +173,132 @@ class ViewController: UIViewController {
         guard let image = UIImage(named: "testImage") else { return }
         
         let size: CGFloat = canvasView.bounds.width / 3
-        let config = StickerConfiguration(
+        let config = ImageStickerConfiguration(
             position: CGPoint(x: canvasView.bounds.width / 2, y: canvasView.bounds.height / 2),
             size: CGSize(width: size, height: size),
             image: image,
-            zIndex: 10
+            color: .clear,
+            zIndex: 10,
+            hasReflection: true,
+            opacity: 1.0
         )
         
-        let imageSticker = StickerFactory.shared.createSticker(type: .image, configuration: config)
+        let imageSticker = StickerFactory.shared.createImageSticker(configuration: config)
         addStickerToCanvas(imageSticker)
     }
     
     // MARK: - Sticker Management
+//    private func addStickerToCanvas(_ sticker: StickerModel) {
+//        // Create layer
+//        let layer = LayerBuilder.shared.createLayer(from: sticker)
+//        canvasView.layer.addSublayer(layer)
+//        
+//        // Update sticker with layer reference
+//        var updatedSticker = sticker
+//        updatedSticker.layer = layer
+//        stickerManager.addSticker(updatedSticker)
+//        
+//        // Select the new sticker
+//        stickerManager.setSelectedSticker(withId: updatedSticker.id)
+//        highlightSelectedSticker()
+//    }
     private func addStickerToCanvas(_ sticker: StickerModel) {
-        // Create layer
+        // Create main layer
         let layer = LayerBuilder.shared.createLayer(from: sticker)
         canvasView.layer.addSublayer(layer)
         
         // Update sticker with layer reference
         var updatedSticker = sticker
         updatedSticker.layer = layer
+        
+        // Add reflection if configured
+        if updatedSticker.hasReflection {
+            let reflectionLayer = createReflectionLayer(for: layer)
+            canvasView.layer.insertSublayer(reflectionLayer, below: layer)
+            updatedSticker.reflectionLayer = reflectionLayer
+        }
+        
         stickerManager.addSticker(updatedSticker)
         
         // Select the new sticker
         stickerManager.setSelectedSticker(withId: updatedSticker.id)
-        updateDeleteButtonVisibility()
         highlightSelectedSticker()
+    }
+
+    private func createReflectionLayer(for mainLayer: CALayer) -> CALayer {
+        let reflectionLayer = CALayer()
+        
+        // Copy visual properties from the main layer's content
+        if let firstSublayer = mainLayer.sublayers?.first {
+            reflectionLayer.contents = firstSublayer.contents
+            reflectionLayer.contentsScale = firstSublayer.contentsScale
+            reflectionLayer.contentsGravity = firstSublayer.contentsGravity
+            reflectionLayer.cornerRadius = firstSublayer.cornerRadius
+            reflectionLayer.masksToBounds = firstSublayer.masksToBounds
+            reflectionLayer.backgroundColor = firstSublayer.backgroundColor
+        }
+        
+        // Set same size and position (but flipped vertically)
+        reflectionLayer.bounds = mainLayer.bounds
+        
+        // Position reflection below the main layer
+        let mainPosition = mainLayer.position
+        let mainHeight = mainLayer.bounds.height
+        reflectionLayer.position = CGPoint(
+            x: mainPosition.x,
+            y: mainPosition.y + mainHeight
+        )
+        
+        // Apply vertical flip (mirror effect)
+        var reflectionTransform = mainLayer.transform
+        reflectionTransform = CATransform3DScale(reflectionTransform, 1, -1, 1)
+        reflectionLayer.transform = reflectionTransform
+        
+        // Reduced opacity for reflection effect
+        reflectionLayer.opacity = 0.25
+        
+        // Mark as reflection layer (for hit testing)
+        reflectionLayer.name = "reflection_layer"
+        
+        // Set zPosition below the main layer
+        reflectionLayer.zPosition = mainLayer.zPosition - 1
+        
+        // Add gradient mask for fade-out effect
+        let gradientMask = CAGradientLayer()
+        gradientMask.frame = reflectionLayer.bounds
+        gradientMask.colors = [
+            UIColor.white.withAlphaComponent(0.7).cgColor,
+            UIColor.white.withAlphaComponent(0.0).cgColor
+        ]
+        gradientMask.locations = [0.0, 1.0]
+        gradientMask.startPoint = CGPoint(x: 0.5, y: 0.0)
+        gradientMask.endPoint = CGPoint(x: 0.5, y: 1.0)
+        
+        reflectionLayer.mask = gradientMask
+        
+        return reflectionLayer
+    }
+
+    private func updateReflectionForSticker(_ sticker: StickerModel) {
+        guard let mainLayer = sticker.layer,
+              let reflectionLayer = sticker.reflectionLayer else { return }
+        
+        // Update position to stay below main layer
+        let mainPosition = mainLayer.position
+        let mainHeight = mainLayer.bounds.height
+        reflectionLayer.position = CGPoint(x: mainPosition.x, y: mainPosition.y + mainHeight)
+        
+        // Update transform to match main layer (with vertical flip)
+        var reflectionTransform = mainLayer.transform
+        reflectionTransform = CATransform3DScale(reflectionTransform, 1, -1, 1)
+        reflectionLayer.transform = reflectionTransform
+        
+        // Update opacity
+        reflectionLayer.opacity = mainLayer.opacity * 0.25
+        
+        // Update other properties
+        reflectionLayer.bounds = mainLayer.bounds
+        reflectionLayer.zPosition = mainLayer.zPosition - 1
     }
     
     private func updateStickerLayer(_ sticker: StickerModel) {
@@ -184,11 +311,28 @@ class ViewController: UIViewController {
         layer.bounds.size = sticker.size
         layer.transform = CATransform3DMakeRotation(sticker.rotation, 0, 0, 1)
         layer.transform = CATransform3DScale(layer.transform, sticker.scale, sticker.scale, 1)
+        layer.opacity = sticker.opacity
         
-        if sticker.type == .image, let cgImage = sticker.image?.cgImage {
-            layer.contents = cgImage
-        } else if let color = sticker.color {
-            layer.backgroundColor = color.cgColor
+        // Handle different sticker types
+        switch sticker.type {
+        case .text:
+            if let textSticker = sticker as? TextStickerModel,
+               let textLayer = layer.sublayers?.first as? CATextLayer {
+                textLayer.string = textSticker.text
+                textLayer.fontSize = textSticker.fontSize
+                textLayer.foregroundColor = textSticker.textColor.cgColor
+                if let fontName = textSticker.fontName {
+                    textLayer.font = CTFontCreateWithName(fontName as CFString, textSticker.fontSize, nil)
+                }
+            }
+        case .image:
+            if let imageSticker = sticker as? ImageStickerModel {
+                layer.contents = imageSticker.image.cgImage
+            }
+        case .shape, .line:
+            if let color = sticker.color {
+                layer.backgroundColor = color.cgColor
+            }
         }
         
         CATransaction.commit()
@@ -200,7 +344,6 @@ class ViewController: UIViewController {
         
         layer.removeFromSuperlayer()
         stickerManager.removeSticker(withId: selectedSticker.id)
-        updateDeleteButtonVisibility()
     }
     
     // MARK: - Gesture Handlers
@@ -210,14 +353,12 @@ class ViewController: UIViewController {
         // Find tapped sticker using manager's hit testing
         if let tappedSticker = stickerManager.getStickerAtPoint(location, in: canvasView) {
             stickerManager.setSelectedSticker(withId: tappedSticker.id)
-            updateDeleteButtonVisibility()
             highlightSelectedSticker()
             return
         }
         
         // If tapped on empty space, clear selection
         stickerManager.clearSelection()
-        updateDeleteButtonVisibility()
         removeHighlight()
     }
     
@@ -301,8 +442,8 @@ class ViewController: UIViewController {
         }
     }
     
-    // MARK: - Button Actions
-    @objc private func addImageTapped() {
+    // MARK: - Button Actions (IBActions)
+    @IBAction func addImageTapped(_ sender: Any) {
         imageCounter += 1
         
         // For demo, use test image. In production, use image picker
@@ -315,18 +456,21 @@ class ViewController: UIViewController {
         let randomX = CGFloat.random(in: size/2...(canvasView.bounds.width - size/2))
         let randomY = CGFloat.random(in: size/2...(canvasView.bounds.height - size/2))
         
-        let config = StickerConfiguration(
+        let config = ImageStickerConfiguration(
             position: CGPoint(x: randomX, y: randomY),
             size: CGSize(width: size, height: size),
             image: image,
-            zIndex: 10 + imageCounter
+            color: .clear,
+            zIndex: 10 + imageCounter,
+            hasReflection: false,
+            opacity: 1.0
         )
         
-        let imageSticker = StickerFactory.shared.createSticker(type: .image, configuration: config)
+        let imageSticker = StickerFactory.shared.createImageSticker(configuration: config)
         addStickerToCanvas(imageSticker)
     }
     
-    @objc private func addLineTapped() {
+    @IBAction func addLineTapped(_ sender: Any) {
         let canvasBounds = canvasView.bounds
         let randomLength = CGFloat.random(in: 50...200)
         let randomThickness = CGFloat.random(in: 5...20)
@@ -345,18 +489,74 @@ class ViewController: UIViewController {
             alpha: 1.0
         )
         
-        let config = StickerConfiguration(
+        let config = LineStickerConfiguration(
             position: CGPoint(x: randomX, y: randomY),
             size: size,
             color: randomColor,
-            zIndex: 5
+            isHorizontal: isHorizontal,
+            initialEdge: nil,
+            lineWidth: randomThickness,
+            zIndex: 5,
+            hasReflection: false,
+            opacity: 1.0
         )
         
-        let lineSticker = StickerFactory.shared.createSticker(type: .line, configuration: config)
+        let lineSticker = StickerFactory.shared.createLineSticker(configuration: config)
         addStickerToCanvas(lineSticker)
     }
     
-    @objc private func deleteTapped() {
+    @IBAction func addTextTapped(_ sender: Any) {
+        let size = CGSize(width: 200, height: 60)
+        let randomX = CGFloat.random(in: size.width/2...(canvasView.bounds.width - size.width/2))
+        let randomY = CGFloat.random(in: size.height/2...(canvasView.bounds.height - size.height/2))
+        
+        let config = TextStickerConfiguration(
+            position: CGPoint(x: randomX, y: randomY),
+            size: size,
+            text: "Text \(imageCounter)",
+            fontSize: 24,
+            fontName: "Helvetica",
+            textColor: .white,
+            backgroundColor: .clear,
+            zIndex: 15 + imageCounter,
+            hasReflection: true,
+            opacity: 1.0
+        )
+        
+        let textSticker = StickerFactory.shared.createTextSticker(configuration: config)
+        addStickerToCanvas(textSticker)
+        imageCounter += 1
+    }
+    
+    @IBAction func addShapeTapped(_ sender: Any) {
+        let size = CGSize(width: 80, height: 80)
+        let randomX = CGFloat.random(in: size.width/2...(canvasView.bounds.width - size.width/2))
+        let randomY = CGFloat.random(in: size.height/2...(canvasView.bounds.height - size.height/2))
+        
+        let randomColor = UIColor(
+            red: CGFloat.random(in: 0...1),
+            green: CGFloat.random(in: 0...1),
+            blue: CGFloat.random(in: 0...1),
+            alpha: 1.0
+        )
+        
+        let config = ShapeStickerConfiguration(
+            position: CGPoint(x: randomX, y: randomY),
+            size: size,
+            color: randomColor,
+            shapeType: .circle,
+            cornerRadius: 40,
+            zIndex: 8 + imageCounter,
+            hasReflection: true,
+            opacity: 0.8
+        )
+        
+        let shapeSticker = StickerFactory.shared.createShapeSticker(configuration: config)
+        addStickerToCanvas(shapeSticker)
+        imageCounter += 1
+    }
+    
+    @IBAction func deleteTapped(_ sender: Any) {
         removeSelectedSticker()
     }
     
@@ -376,24 +576,6 @@ class ViewController: UIViewController {
         let layerBounds = layer.bounds
         let canvasBounds = canvasView.bounds
         
-        // For lines with specific edge positions, constrain differently
-        //        if sticker.type == .line, let edge = sticker.initialEdge {
-        //            switch edge {
-        //            case .top:
-        //                constrainedPosition.x = position.x
-        //                constrainedPosition.y = LINE_WIDTH / 2
-        //            case .bottom:
-        //                constrainedPosition.x = position.x
-        //                constrainedPosition.y = canvasBounds.height - LINE_WIDTH / 2
-        //            case .left:
-        //                constrainedPosition.x = LINE_WIDTH / 2
-        //                constrainedPosition.y = position.y
-        //            case .right:
-        //                constrainedPosition.x = canvasBounds.width - LINE_WIDTH / 2
-        //                constrainedPosition.y = position.y
-        //            }
-        //        } else {
-        
         // For other stickers, keep within canvas
         let minX = layerBounds.width * sticker.scale / 2
         let maxX = canvasBounds.width - (layerBounds.width * sticker.scale / 2)
@@ -402,7 +584,6 @@ class ViewController: UIViewController {
         
         constrainedPosition.x = min(max(position.x, minX), maxX)
         constrainedPosition.y = min(max(position.y, minY), maxY)
-        //}
         
         return constrainedPosition
     }
@@ -436,10 +617,6 @@ class ViewController: UIViewController {
         }
     }
     
-    private func updateDeleteButtonVisibility() {
-        //deleteButton.isHidden = stickerManager.selectedSticker == nil
-    }
-    
     private func showAlert(message: String) {
         let alert = UIAlertController(title: "Info", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
@@ -455,9 +632,9 @@ class ViewController: UIViewController {
             }
         }
         
-        // Animate all image stickers with current animation type
-        for sticker in stickerManager.imageStickers {
-            if let layer = sticker.layer {
+        // Animate all image, text, and shape stickers with current animation type
+        for sticker in stickerManager.allStickers {
+            if sticker.type != .line, let layer = sticker.layer {
                 LayerBuilder.shared.applyAnimation(to: layer, animationType: currentSelectedAnimation, duration: DURATION)
             }
         }
@@ -497,7 +674,6 @@ class ViewController: UIViewController {
         }
         
         // Clear sticker manager
-        //let stickerManagerCopy = stickerManager
         stickerManager = StickerManager()
         
         // Recreate all stickers with saved positions
@@ -618,4 +794,3 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
         return CGSize(width: width, height: 40)
     }
 }
-

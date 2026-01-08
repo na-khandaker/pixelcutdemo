@@ -256,13 +256,49 @@ class VideoManager {
         // Apply rotation and scale from sticker
         layer.transform = CATransform3DMakeRotation(sticker.rotation, 0, 0, 1)
         layer.transform = CATransform3DScale(layer.transform, sticker.scale, sticker.scale, 1)
+        layer.opacity = sticker.opacity
         
         // Set content based on sticker type
-        if sticker.type == .image, let cgImage = sticker.image?.cgImage {
-            layer.contents = cgImage
-            layer.contentsGravity = .resizeAspect
-        } else if let color = sticker.color {
-            layer.backgroundColor = color.cgColor
+        switch sticker.type {
+        case .text:
+            if let textSticker = sticker as? TextStickerModel {
+                let textLayer = CATextLayer()
+                textLayer.string = textSticker.text
+                textLayer.font = CTFontCreateWithName((textSticker.fontName ?? "Helvetica") as CFString, textSticker.fontSize, nil)
+                textLayer.fontSize = textSticker.fontSize
+                textLayer.foregroundColor = textSticker.textColor.cgColor
+                textLayer.alignmentMode = .center
+                textLayer.isWrapped = true
+                textLayer.frame = layer.bounds
+                textLayer.contentsScale = UIScreen.main.scale
+                
+                layer.addSublayer(textLayer)
+                
+                // Add reflection if needed
+                if sticker.hasReflection {
+                    addVideoReflectionLayer(to: layer, sticker: sticker)
+                }
+            }
+            
+        case .image:
+            if let imageSticker = sticker as? ImageStickerModel,
+               let cgImage = imageSticker.image.cgImage {
+                layer.contents = cgImage
+                layer.contentsGravity = .resizeAspect
+                
+                if sticker.hasReflection {
+                    addVideoReflectionLayer(to: layer, sticker: sticker)
+                }
+            }
+            
+        case .shape, .line:
+            if let color = sticker.color {
+                layer.backgroundColor = color.cgColor
+                
+                if sticker.hasReflection {
+                    addVideoReflectionLayer(to: layer, sticker: sticker)
+                }
+            }
         }
         
         // Apply the correct animation based on sticker type and animation type
@@ -280,6 +316,35 @@ class VideoManager {
         }
         
         return layer
+    }
+    
+    private func addVideoReflectionLayer(to layer: CALayer, sticker: StickerModel) {
+        let reflectionLayer = CALayer()
+        reflectionLayer.contents = layer.contents
+        reflectionLayer.backgroundColor = layer.backgroundColor
+        reflectionLayer.frame = layer.frame
+        reflectionLayer.transform = CATransform3DMakeScale(1, -1, 1)
+        reflectionLayer.opacity = sticker.opacity * 0.3
+        
+        // Position reflection below original
+        let reflectionHeight = layer.bounds.height * 0.3
+        reflectionLayer.frame.origin.y = layer.bounds.height
+        
+        // Create gradient mask for fade effect
+        let gradientMask = CAGradientLayer()
+        gradientMask.frame = CGRect(x: 0, y: 0,
+                                   width: reflectionLayer.bounds.width,
+                                   height: reflectionHeight)
+        gradientMask.colors = [
+            UIColor.white.withAlphaComponent(0.5).cgColor,
+            UIColor.white.withAlphaComponent(0.0).cgColor
+        ]
+        gradientMask.locations = [0.0, 1.0]
+        gradientMask.startPoint = CGPoint(x: 0.5, y: 0.0)
+        gradientMask.endPoint = CGPoint(x: 0.5, y: 1.0)
+        
+        reflectionLayer.mask = gradientMask
+        layer.addSublayer(reflectionLayer)
     }
     
     private func applyLineAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {

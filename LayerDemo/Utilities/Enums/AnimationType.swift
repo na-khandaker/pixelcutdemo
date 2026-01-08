@@ -7,6 +7,13 @@
 
 import UIKit
 
+// MARK: - Enums
+enum ShapeType {
+    case rectangle
+    case circle
+    case roundedRect
+}
+
 enum AnimationType: String, CaseIterable, Decodable {
     case RevealUp = "RevealUp"
     case RevealDown = "RevealDown"

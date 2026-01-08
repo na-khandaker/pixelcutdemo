@@ -9,18 +9,10 @@ import UIKit
 
 // MARK: - Protocol for Sticker Factory
 protocol StickerFactoryProtocol {
-    func createSticker(type: StickerType,
-                       configuration: StickerConfiguration) -> StickerModel
-}
-
-struct StickerConfiguration {
-    var position: CGPoint
-    var size: CGSize
-    var color: UIColor?
-    var image: UIImage?
-    var edge: Edge?
-    var zIndex: Int = 0
-    var isSelectable: Bool = true
+    func createTextSticker(configuration: TextStickerConfiguration) -> TextStickerModel
+    func createImageSticker(configuration: ImageStickerConfiguration) -> ImageStickerModel
+    func createShapeSticker(configuration: ShapeStickerConfiguration) -> ShapeStickerModel
+    func createLineSticker(configuration: LineStickerConfiguration) -> LineStickerModel
 }
 
 // MARK: - Sticker Factory
@@ -29,50 +21,59 @@ class StickerFactory: StickerFactoryProtocol {
     
     private init() {}
     
-    func createSticker(type: StickerType,
-                       configuration: StickerConfiguration) -> StickerModel {
-        switch type {
-        case .line:
-            return createLineSticker(configuration: configuration)
-        case .image:
-            return createImageSticker(configuration: configuration)
-        case .shape:
-            return createShapeSticker(configuration: configuration)
-        }
-    }
-    
-    private func createLineSticker(configuration: StickerConfiguration) -> StickerModel {
-        let isHorizontal = configuration.size.height < configuration.size.width
-        let initialEdge: Edge? = configuration.edge
-        
-        return StickerModel(
-            type: .line,
+    func createTextSticker(configuration: TextStickerConfiguration) -> TextStickerModel {
+        return TextStickerModel(
+            text: configuration.text,
             position: configuration.position,
             size: configuration.size,
-            color: configuration.color ?? getColorForEdge(configuration.edge),
+            fontSize: configuration.fontSize,
+            fontName: configuration.fontName,
+            textColor: configuration.textColor,
+            backgroundColor: configuration.color,
             zIndex: configuration.zIndex,
-            isHorizontal: isHorizontal,
-            initialEdge: initialEdge
+            hasReflection: configuration.hasReflection,
+            opacity: configuration.opacity
         )
     }
     
-    private func createImageSticker(configuration: StickerConfiguration) -> StickerModel {
-        return StickerModel(
-            type: .image,
+    func createImageSticker(configuration: ImageStickerConfiguration) -> ImageStickerModel {
+        return ImageStickerModel(
+            image: configuration.image,
             position: configuration.position,
             size: configuration.size,
-            image: configuration.image,
-            zIndex: configuration.zIndex
+            color: configuration.color,
+            zIndex: configuration.zIndex,
+            hasReflection: configuration.hasReflection,
+            opacity: configuration.opacity
         )
     }
     
-    private func createShapeSticker(configuration: StickerConfiguration) -> StickerModel {
-        return StickerModel(
-            type: .shape,
+    func createShapeSticker(configuration: ShapeStickerConfiguration) -> ShapeStickerModel {
+        return ShapeStickerModel(
             position: configuration.position,
             size: configuration.size,
             color: configuration.color ?? .systemPurple,
-            zIndex: configuration.zIndex
+            shapeType: configuration.shapeType,
+            cornerRadius: configuration.cornerRadius,
+            zIndex: configuration.zIndex,
+            hasReflection: configuration.hasReflection,
+            opacity: configuration.opacity
+        )
+    }
+    
+    func createLineSticker(configuration: LineStickerConfiguration) -> LineStickerModel {
+        let isHorizontal = configuration.isHorizontal ?? (configuration.size.height < configuration.size.width)
+        
+        return LineStickerModel(
+            position: configuration.position,
+            size: configuration.size,
+            color: configuration.color ?? getColorForEdge(configuration.initialEdge),
+            isHorizontal: isHorizontal,
+            initialEdge: configuration.initialEdge,
+            lineWidth: configuration.lineWidth,
+            zIndex: configuration.zIndex,
+            hasReflection: configuration.hasReflection,
+            opacity: configuration.opacity
         )
     }
     

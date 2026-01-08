@@ -21,12 +21,20 @@ class StickerManager {
         return stickers[selectedId]
     }
     
-    var imageStickers: [StickerModel] {
-        return stickers.values.filter { $0.type == .image }
+    var textStickers: [TextStickerModel] {
+        return stickers.values.compactMap { $0 as? TextStickerModel }
     }
     
-    var lineStickers: [StickerModel] {
-        return stickers.values.filter { $0.type == .line }
+    var imageStickers: [ImageStickerModel] {
+        return stickers.values.compactMap { $0 as? ImageStickerModel }
+    }
+    
+    var lineStickers: [LineStickerModel] {
+        return stickers.values.compactMap { $0 as? LineStickerModel }
+    }
+    
+    var shapeStickers: [ShapeStickerModel] {
+        return stickers.values.compactMap { $0 as? ShapeStickerModel }
     }
     
     func addSticker(_ sticker: StickerModel) {
@@ -47,8 +55,8 @@ class StickerManager {
         }
     }
     
-    func getSticker(withId id: String) -> StickerModel? {
-        return stickers[id]
+    func getSticker<T: StickerModel>(withId id: String) -> T? {
+        return stickers[id] as? T
     }
     
     func setSelectedSticker(withId id: String) {
@@ -70,7 +78,6 @@ class StickerManager {
     }
     
     // MARK: - Hit Testing
-    // MARK: - Improved Hit Testing using CALayer's hitTest
     func getStickerAtPoint(_ point: CGPoint, in canvasView: UIView) -> StickerModel? {
         // Check from top to bottom (reverse z-order)
         let sortedStickers = allStickers.sorted { $0.zIndex > $1.zIndex }
@@ -110,41 +117,62 @@ class StickerManager {
         return nil
     }
     
-    private func isPoint(_ point: CGPoint, inSticker sticker: StickerModel, canvasView: UIView) -> Bool {
-        guard let layer = sticker.layer else { return false }
+    // MARK: - Text Sticker Specific Methods
+    func updateTextSticker(withId id: String, newText: String) {
+        guard var sticker = stickers[id] as? TextStickerModel else { return }
+        sticker.text = newText
+        stickers[id] = sticker
         
-        // Convert point to layer's coordinate system
-        let layerPoint = layer.convert(point, from: canvasView.layer)
-        
-        // Create hit test area (larger than visual bounds for easier tapping)
-        let hitArea: CGRect
-        
-        if sticker.type == .line {
-            // For lines, create a larger hit area
-            let hitMargin: CGFloat = 20.0
-            
-            if let isHorizontal = sticker.isHorizontal, isHorizontal {
-                // Horizontal line
-                hitArea = CGRect(
-                    x: layer.bounds.minX,
-                    y: layer.bounds.midY - hitMargin,
-                    width: layer.bounds.width,
-                    height: hitMargin * 2
-                )
-            } else {
-                // Vertical line
-                hitArea = CGRect(
-                    x: layer.bounds.midX - hitMargin,
-                    y: layer.bounds.minY,
-                    width: hitMargin * 2,
-                    height: layer.bounds.height
-                )
-            }
-        } else {
-            // For images and shapes, use actual bounds
-            hitArea = layer.bounds
+        // Update layer if exists
+        if let textLayer = sticker.layer?.sublayers?.first as? CATextLayer {
+            textLayer.string = newText
         }
+    }
+    
+    func updateTextStickerFont(withId id: String, fontSize: CGFloat, fontName: String? = nil) {
+        guard var sticker = stickers[id] as? TextStickerModel else { return }
+        sticker.fontSize = fontSize
+        if let fontName = fontName {
+            sticker.fontName = fontName
+        }
+        stickers[id] = sticker
         
-        return hitArea.contains(layerPoint)
+        // Update layer if exists
+        if let textLayer = sticker.layer?.sublayers?.first as? CATextLayer {
+            textLayer.fontSize = fontSize
+            if let fontName = fontName {
+                textLayer.font = CTFontCreateWithName(fontName as CFString, fontSize, nil)
+            }
+        }
+    }
+    
+    func updateTextStickerColor(withId id: String, textColor: UIColor) {
+        guard var sticker = stickers[id] as? TextStickerModel else { return }
+        sticker.textColor = textColor
+        stickers[id] = sticker
+        
+        // Update layer if exists
+        if let textLayer = sticker.layer?.sublayers?.first as? CATextLayer {
+            textLayer.foregroundColor = textColor.cgColor
+        }
+    }
+    
+    func toggleReflection(forStickerId id: String) {
+        guard var sticker = stickers[id] else { return }
+        sticker.hasReflection = !sticker.hasReflection
+        stickers[id] = sticker
+        
+        // Update layer - would need to recreate layer with new reflection setting
+        // This should be handled by the view controller
+    }
+    
+    func updateOpacity(forStickerId id: String, opacity: Float) {
+        guard var sticker = stickers[id] else { return }
+        sticker.opacity = opacity
+        stickers[id] = sticker
+        
+        // Update layer if exists
+        sticker.layer?.opacity = opacity
+        sticker.reflectionLayer?.opacity = opacity * 0.3
     }
 }
