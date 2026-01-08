@@ -20,3 +20,10 @@ enum AnimationType: String, CaseIterable, Decodable {
     case Fade = "Fade"
     case Scale = "Scale"
 }
+
+enum Edge {
+    case top
+    case bottom
+    case left
+    case right
+}
