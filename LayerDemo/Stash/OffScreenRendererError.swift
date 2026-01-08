@@ -16,13 +16,13 @@ class OffScreenRenderer: NSObject {
     private let device: MTLDevice
     private let commandQueue: MTLCommandQueue
     private let passDescriptor: MTLRenderPassDescriptor
-
+    
     private let renderer: CARenderer
     private let startTime: CMTime
-
+    
     init(device: MTLDevice? = nil) throws {
         let device = device ?? MTLCreateSystemDefaultDevice()
-
+        
         guard
             let device,
             let commandQueue = device.makeCommandQueue(),
@@ -30,32 +30,32 @@ class OffScreenRenderer: NSObject {
         else {
             throw OffScreenRendererError.unknown
         }
-
+        
         self.device = device
         self.commandQueue = commandQueue
         self.passDescriptor = MTLRenderPassDescriptor()
-
+        
         self.renderer = CARenderer(mtlTexture: texture)
         self.startTime = CMTime(seconds: CACurrentMediaTime(), preferredTimescale: 600)
-
+        
         passDescriptor.colorAttachments[0].storeAction = .store
         passDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 0)
         passDescriptor.colorAttachments[0].loadAction = .clear
     }
-
+    
     func setLayer(_ parent: CALayer) throws {
         parent.beginTime = startTime.seconds
         renderer.layer = parent
         CATransaction.flush()
         CATransaction.commit()
-
+        
         renderer.bounds = CGRect(origin: .zero, size: parent.bounds.size)
     }
-
+    
     func renderCIImage(at time: CMTime) -> CIImage? {
         let texture = device.generateOffScreenRendererTexture(size: renderer.bounds.size)
         passDescriptor.colorAttachments[0].texture = texture
-
+        
         guard
             let texture,
             let renderCommandBuffer = commandQueue.makeCommandBuffer(),
@@ -63,47 +63,47 @@ class OffScreenRenderer: NSObject {
         else {
             return nil
         }
-
+        
         renderCommandEncoder.endEncoding()
         renderCommandBuffer.commit()
         renderCommandBuffer.waitUntilCompleted()
-
+        
         renderer.setDestination(texture)
         renderer.beginFrame(atTime: (startTime + time).seconds, timeStamp: nil)
         renderer.addUpdate(renderer.bounds)
         renderer.render()
         renderer.endFrame()
-
+        
         guard
             let blitCommandBuffer = commandQueue.makeCommandBuffer(),
             let blitCommandEncoder = blitCommandBuffer.makeBlitCommandEncoder()
         else {
             return nil
         }
-
+        
         blitCommandEncoder.endEncoding()
         blitCommandBuffer.commit()
         blitCommandBuffer.waitUntilCompleted()
-
+        
         let ciImage = CIImage(
             mtlTexture: texture,
             options: [.colorSpace: CGColorSpace(name: CGColorSpace.sRGB)  as Any]
         )
-
+        
         return ciImage
     }
-
+    
     func renderCIImages(frameDuration: CMTime, timeRange: CMTimeRange) -> [CIImage] {
         var currentTime = timeRange.start
         var images: [CIImage] = []
-
+        
         while currentTime < timeRange.end {
             if let image = renderCIImage(at: currentTime) {
                 images.append(image)
             }
             currentTime = currentTime + frameDuration
         }
-
+        
         return images
     }
 }

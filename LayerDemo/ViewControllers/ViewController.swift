@@ -1,6 +1,8 @@
 import UIKit
 import Photos
 import AVFoundation
+import AVKit
+import MobileCoreServices
 
 class ViewController: UIViewController {
     
@@ -375,30 +377,31 @@ class ViewController: UIViewController {
         let canvasBounds = canvasView.bounds
         
         // For lines with specific edge positions, constrain differently
-//        if sticker.type == .line, let edge = sticker.initialEdge {
-//            switch edge {
-//            case .top:
-//                constrainedPosition.x = position.x
-//                constrainedPosition.y = LINE_WIDTH / 2
-//            case .bottom:
-//                constrainedPosition.x = position.x
-//                constrainedPosition.y = canvasBounds.height - LINE_WIDTH / 2
-//            case .left:
-//                constrainedPosition.x = LINE_WIDTH / 2
-//                constrainedPosition.y = position.y
-//            case .right:
-//                constrainedPosition.x = canvasBounds.width - LINE_WIDTH / 2
-//                constrainedPosition.y = position.y
-//            }
-//        } else {
-            // For other stickers, keep within canvas
-            let minX = layerBounds.width * sticker.scale / 2
-            let maxX = canvasBounds.width - (layerBounds.width * sticker.scale / 2)
-            let minY = layerBounds.height * sticker.scale / 2
-            let maxY = canvasBounds.height - (layerBounds.height * sticker.scale / 2)
-            
-            constrainedPosition.x = min(max(position.x, minX), maxX)
-            constrainedPosition.y = min(max(position.y, minY), maxY)
+        //        if sticker.type == .line, let edge = sticker.initialEdge {
+        //            switch edge {
+        //            case .top:
+        //                constrainedPosition.x = position.x
+        //                constrainedPosition.y = LINE_WIDTH / 2
+        //            case .bottom:
+        //                constrainedPosition.x = position.x
+        //                constrainedPosition.y = canvasBounds.height - LINE_WIDTH / 2
+        //            case .left:
+        //                constrainedPosition.x = LINE_WIDTH / 2
+        //                constrainedPosition.y = position.y
+        //            case .right:
+        //                constrainedPosition.x = canvasBounds.width - LINE_WIDTH / 2
+        //                constrainedPosition.y = position.y
+        //            }
+        //        } else {
+        
+        // For other stickers, keep within canvas
+        let minX = layerBounds.width * sticker.scale / 2
+        let maxX = canvasBounds.width - (layerBounds.width * sticker.scale / 2)
+        let minY = layerBounds.height * sticker.scale / 2
+        let maxY = canvasBounds.height - (layerBounds.height * sticker.scale / 2)
+        
+        constrainedPosition.x = min(max(position.x, minX), maxX)
+        constrainedPosition.y = min(max(position.y, minY), maxY)
         //}
         
         return constrainedPosition
@@ -485,7 +488,7 @@ class ViewController: UIViewController {
     // MARK: - Play/Reset
     private func resetAndReanimate() {
         // Save current states
-        var savedStickers = stickerManager.allStickers
+        let savedStickers = stickerManager.allStickers
         
         // Remove all layers and animations
         canvasView.layer.sublayers?.forEach {
@@ -494,7 +497,7 @@ class ViewController: UIViewController {
         }
         
         // Clear sticker manager
-        let stickerManagerCopy = stickerManager
+        //let stickerManagerCopy = stickerManager
         stickerManager = StickerManager()
         
         // Recreate all stickers with saved positions
@@ -509,72 +512,17 @@ class ViewController: UIViewController {
     
     // MARK: - Export
     private func exportAnimatedVideo() {
-        PHPhotoLibrary.requestAuthorization { [weak self] status in
-            DispatchQueue.main.async {
-                guard let self = self else { return }
-                
-                if status == .authorized {
-                    self.performVideoExport()
-                } else {
-                    self.showPhotoLibraryAccessAlert()
-                }
-            }
-        }
-    }
-    
-    private func performVideoExport() {
-        // Build export layer
-        let exportLayer = buildExportLayer()
-        
-        // Create temporary URL
-        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("exported_video_\(Date().timeIntervalSince1970).mp4")
-        
-        // Remove existing file
-        try? FileManager.default.removeItem(at: tempURL)
-        
-        // Note: For actual export, you would need to implement VideoWriter
-        // and OffScreenRenderer. This is a placeholder implementation.
-        showAlert(message: "Video export functionality requires VideoWriter and OffScreenRenderer implementation.")
-        
-        // For now, just save a screenshot
-        UIGraphicsBeginImageContextWithOptions(canvasView.bounds.size, false, 0)
-        canvasView.drawHierarchy(in: canvasView.bounds, afterScreenUpdates: true)
-        let screenshot = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        if let screenshot = screenshot {
-            UIImageWriteToSavedPhotosAlbum(screenshot, nil, nil, nil)
-            showAlert(message: "Screenshot saved to photos!")
-        }
-    }
-    
-    private func buildExportLayer() -> CALayer {
-        let containerLayer = CALayer()
-        containerLayer.bounds = CGRect(origin: .zero, size: videoSize)
-        containerLayer.position = CGPoint(x: videoSize.width / 2, y: videoSize.height / 2)
-        containerLayer.backgroundColor = UIColor.white.cgColor
-        
-        // Scale factor for video size
-        let scaleFactor = videoSize.width / canvasView.bounds.width
-        
-        // Recreate all stickers for export
-        for sticker in stickerManager.allStickers {
-            var scaledSticker = sticker
-            scaledSticker.position = CGPoint(
-                x: sticker.position.x * scaleFactor,
-                y: sticker.position.y * scaleFactor
-            )
-            scaledSticker.size = CGSize(
-                width: sticker.size.width * scaleFactor,
-                height: sticker.size.height * scaleFactor
-            )
-            
-            let layer = LayerBuilder.shared.createLayer(from: scaledSticker)
-            containerLayer.addSublayer(layer)
-        }
-        
-        return containerLayer
+//        PHPhotoLibrary.requestAuthorization { [weak self] status in
+//            DispatchQueue.main.async {
+//                guard let self = self else { return }
+//                
+//                if status == .authorized {
+//                    self.performVideoExport()
+//                } else {
+//                    self.showPhotoLibraryAccessAlert()
+//                }
+//            }
+//        }
     }
     
     private func showPhotoLibraryAccessAlert() {
@@ -625,3 +573,4 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
         return CGSize(width: width, height: 40)
     }
 }
+

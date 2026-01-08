@@ -15,16 +15,28 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				"Stash/ViewController+Export.swift",
 			);
 			target = 1D758BD62EE68DA2002DEE2D /* LayerDemo */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		D3B8E27D2F0F4796009FA4E5 /* Exceptions for "LayerDemo" folder in "Copy Bundle Resources" phase from "LayerDemo" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 1D758BD52EE68DA2002DEE2D /* Resources */;
+			membershipExceptions = (
+				"Stash/ViewController+Export.swift",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1D758BD92EE68DA2002DEE2D /* LayerDemo */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				1D758BE92EE68DA4002DEE2D /* Exceptions for "LayerDemo" folder in "LayerDemo" target */,
+				D3B8E27D2F0F4796009FA4E5 /* Exceptions for "LayerDemo" folder in "Copy Bundle Resources" phase from "LayerDemo" target */,
 			);
 			path = LayerDemo;
 			sourceTree = "<group>";

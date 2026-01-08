@@ -14,25 +14,6 @@ enum TempleteName {
     case OnSale
 }
 
-//enum AnimationType: String, Decodable, CaseIterable {
-//
-//    case None = "none"
-//    case Fade = "fade"
-//    case Sacel = "scale"
-//
-//    case RevealUp = "revealUp"
-//    case RevealDown = "revealDown"
-//    case RevealLeft = "revealLeft"
-//    case RevealRight = "revealRight"
-//
-//    case DriftDown = "driftDown"
-//    case DriftUp = "driftUp"
-//    case DriftLeft = "driftLeft"
-//    case DriftRight = "driftRight"
-//
-//}
-
-
 protocol BaseProperty: Decodable {
     var animation: AnimationType { get set }
     var posX: Double { get set }
@@ -80,11 +61,19 @@ struct TextModel: Decodable , BaseProperty {
     var fomtSize: Int
     var colorHex: String
 }
+//
+//struct TempleteModel: Decodable {
+//    var image:ImageModel?
+//    var text:TextModel?
+//    var canvasBG:ImageModel?
+//}
 
-struct TempleteModel: Decodable {
-    var image:ImageModel?
-    var text:TextModel?
-    //    var frame:ImageModel?
-    //    var highlight:[ImageModel?]
-    var canvasBG:ImageModel?
+enum Edge {
+    case top
+    case bottom
+    case left
+    case right
 }
+
+
+
