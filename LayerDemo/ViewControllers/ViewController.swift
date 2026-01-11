@@ -427,6 +427,10 @@ class ViewController: UIViewController {
         let translation = gesture.translation(in: canvasView)
         
         if gesture.state == .began {
+            layer.removeAllAnimations()
+            if let reflectionLayer = selectedSticker.reflectionLayer {
+                reflectionLayer.removeAllAnimations()
+            }
             lastPanPosition = selectedSticker.position
         }
         
