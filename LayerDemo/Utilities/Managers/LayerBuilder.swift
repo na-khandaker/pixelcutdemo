@@ -286,20 +286,20 @@ class LayerBuilder: LayerBuilderProtocol {
     }
     
     // MARK: - Animation Methods
-    func applyAnimation(to layer: CALayer, animationType: AnimationType, duration: TimeInterval) {
-        switch animationType {
-        case .RevealUp, .RevealDown, .RevealLeft, .RevealRight:
-            applyRevealAnimation(to: layer, type: animationType, duration: duration)
-        case .DriftUp, .DriftDown, .DriftLeft, .DriftRight:
-            applyDriftAnimation(to: layer, type: animationType, duration: duration)
-        case .Fade:
-            applyFadeAnimation(to: layer, duration: duration)
-        case .Scale:
-            applyScaleAnimation(to: layer, duration: duration)
-        default:
-            break
-        }
-    }
+//    func applyAnimation(to layer: CALayer, animationType: AnimationType, duration: TimeInterval) {
+//        switch animationType {
+//        case .RevealUp, .RevealDown, .RevealLeft, .RevealRight:
+//            applyRevealAnimation(to: layer, type: animationType, duration: duration)
+//        case .DriftUp, .DriftDown, .DriftLeft, .DriftRight:
+//            applyDriftAnimation(to: layer, type: animationType, duration: duration)
+//        case .Fade:
+//            applyFadeAnimation(to: layer, duration: duration)
+//        case .Scale:
+//            applyScaleAnimation(to: layer, duration: duration)
+//        default:
+//            break
+//        }
+//    }
     
     private func applyRevealAnimation(to layer: CALayer, type: AnimationType, duration: TimeInterval) {
         guard let maskLayer = createMaskLayer(for: type, size: layer.bounds.size) else { return }
@@ -583,5 +583,119 @@ extension LayerBuilder {
         sticker.layer = containerLayer
         
         return containerLayer
+    }
+}
+
+// MARK: - Animation Methods in LayerBuilder (Updated)
+extension LayerBuilder {
+    func applyAnimation(to layer: CALayer, animationType: AnimationType, duration: TimeInterval) {
+        // Check if this is a reflection layer
+        let isReflectionLayer = layer.name == "reflection_layer"
+        
+        switch animationType {
+        case .RevealUp, .RevealDown, .RevealLeft, .RevealRight:
+            applyRevealAnimation(to: layer, type: animationType, duration: duration, isReflectionLayer: isReflectionLayer)
+        case .DriftUp, .DriftDown, .DriftLeft, .DriftRight:
+            applyDriftAnimation(to: layer, type: animationType, duration: duration, isReflectionLayer: isReflectionLayer)
+        case .Fade:
+            applyFadeAnimation(to: layer, duration: duration)
+        case .Scale:
+            applyScaleAnimation(to: layer, duration: duration, isReflectionLayer: isReflectionLayer)
+        default:
+            break
+        }
+    }
+    
+    private func applyRevealAnimation(to layer: CALayer, type: AnimationType, duration: TimeInterval, isReflectionLayer: Bool = false) {
+        guard let maskLayer = createMaskLayer(for: type, size: layer.bounds.size) else { return }
+        layer.mask = maskLayer
+        
+        // For reflection layers, we might need to adjust the animation
+        var animationType = type
+        if isReflectionLayer {
+            // For reflection, we might want to reverse certain animations
+            // This depends on your desired effect
+            switch type {
+            case .RevealUp:
+                animationType = .RevealDown
+            case .RevealDown:
+                animationType = .RevealUp
+            // For left/right reveals, keep the same direction
+            default:
+                break
+            }
+        }
+        
+        let animation = CABasicAnimation(keyPath: getRevealKeyPath(for: animationType))
+        animation.fromValue = 0
+        animation.toValue = getRevealToValue(for: animationType, layer: layer)
+        animation.duration = duration
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        animation.fillMode = .forwards
+        animation.isRemovedOnCompletion = false
+        
+        maskLayer.add(animation, forKey: "revealAnimation")
+    }
+    
+    private func applyDriftAnimation(to layer: CALayer, type: AnimationType, duration: TimeInterval, isReflectionLayer: Bool = false) {
+        var animationType = type
+        
+        // For reflection layers, adjust drift direction if needed
+        if isReflectionLayer {
+            switch type {
+            case .DriftUp:
+                animationType = .DriftDown
+            case .DriftDown:
+                animationType = .DriftUp
+            case .DriftLeft:
+                animationType = .DriftRight
+            case .DriftRight:
+                animationType = .DriftLeft
+            default:
+                break
+            }
+        }
+        
+        let animation = CABasicAnimation(keyPath: getDriftKeyPath(for: animationType))
+        animation.fromValue = getDriftFromValue(for: animationType, layer: layer)
+        animation.toValue = getDriftToValue(for: animationType, layer: layer)
+        animation.duration = duration
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        animation.fillMode = .forwards
+        animation.isRemovedOnCompletion = false
+        
+        layer.add(animation, forKey: "driftAnimation")
+    }
+    
+//    private func applyFadeAnimation(to layer: CALayer, duration: TimeInterval) {
+//        let animation = CABasicAnimation(keyPath: "opacity")
+//        animation.fromValue = 0.0
+//        animation.toValue = layer.opacity // Use the layer's current opacity
+//        animation.duration = duration
+//        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+//        animation.fillMode = .forwards
+//        animation.isRemovedOnCompletion = false
+//        
+//        layer.add(animation, forKey: "fadeAnimation")
+//    }
+    
+    private func applyScaleAnimation(to layer: CALayer, duration: TimeInterval, isReflectionLayer: Bool = false) {
+        let animation = CABasicAnimation(keyPath: "transform.scale")
+        
+        // For reflection layers, we might want to start from a different scale
+        if isReflectionLayer {
+            animation.fromValue = 0.5
+            animation.toValue = 1.0
+        } else {
+            animation.fromValue = 0.5
+            animation.toValue = 1.0
+        }
+        
+        animation.duration = duration
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        animation.fillMode = .forwards
+        animation.isRemovedOnCompletion = false
+        
+        layer.add(animation, forKey: "scaleAnimation")
     }
 }

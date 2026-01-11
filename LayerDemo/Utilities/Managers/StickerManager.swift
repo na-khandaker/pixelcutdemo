@@ -45,6 +45,11 @@ class StickerManager {
     }
     
     func updateSticker(_ sticker: StickerModel) {
+        // Preserve layer references when updating
+        if let existingSticker = stickers[sticker.id] {
+            sticker.layer = existingSticker.layer
+            sticker.reflectionLayer = existingSticker.reflectionLayer
+        }
         stickers[sticker.id] = sticker
     }
     

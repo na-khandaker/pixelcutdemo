@@ -77,7 +77,7 @@ class ViewController: UIViewController {
             text: "Hello World!",
             fontSize: 36,
             fontName: "Helvetica-Bold",
-            textColor: .white,
+            textColor: .blue,
             backgroundColor: .clear,
             zIndex: 20,
             hasReflection: true,
@@ -207,7 +207,7 @@ class ViewController: UIViewController {
         let layer = LayerBuilder.shared.createLayer(from: sticker)
         canvasView.layer.addSublayer(layer)
         
-        // Update sticker with layer reference
+        // Create a mutable copy to update
         var updatedSticker = sticker
         updatedSticker.layer = layer
         
@@ -218,6 +218,7 @@ class ViewController: UIViewController {
             updatedSticker.reflectionLayer = reflectionLayer
         }
         
+        // IMPORTANT: Add the updated sticker with layer references
         stickerManager.addSticker(updatedSticker)
         
         // Select the new sticker
@@ -228,18 +229,40 @@ class ViewController: UIViewController {
     private func createReflectionLayer(for mainLayer: CALayer) -> CALayer {
         let reflectionLayer = CALayer()
         
-        // Copy visual properties from the main layer's content
-        if let firstSublayer = mainLayer.sublayers?.first {
+        // Check if main layer contains a CATextLayer
+        if let textLayer = mainLayer.sublayers?.first as? CATextLayer {
+            // Handle text layer reflection
+            let textReflectionLayer = CATextLayer()
+            textReflectionLayer.string = textLayer.string
+            textReflectionLayer.font = textLayer.font
+            textReflectionLayer.fontSize = textLayer.fontSize
+            textReflectionLayer.foregroundColor = textLayer.foregroundColor
+            textReflectionLayer.alignmentMode = textLayer.alignmentMode
+            textReflectionLayer.isWrapped = textLayer.isWrapped
+            textReflectionLayer.contentsScale = textLayer.contentsScale
+            textReflectionLayer.frame = textLayer.frame
+            
+            // Apply container background if exists
+            reflectionLayer.backgroundColor = mainLayer.backgroundColor
+            reflectionLayer.cornerRadius = mainLayer.cornerRadius
+            
+            reflectionLayer.addSublayer(textReflectionLayer)
+            
+        } else if let firstSublayer = mainLayer.sublayers?.first {
+            // Handle image/shape layer reflection
             reflectionLayer.contents = firstSublayer.contents
             reflectionLayer.contentsScale = firstSublayer.contentsScale
             reflectionLayer.contentsGravity = firstSublayer.contentsGravity
             reflectionLayer.cornerRadius = firstSublayer.cornerRadius
             reflectionLayer.masksToBounds = firstSublayer.masksToBounds
             reflectionLayer.backgroundColor = firstSublayer.backgroundColor
+            reflectionLayer.frame = firstSublayer.frame
+        } else {
+            // Fallback to main layer properties
+            reflectionLayer.frame = mainLayer.bounds
+            reflectionLayer.backgroundColor = mainLayer.backgroundColor
+            reflectionLayer.cornerRadius = mainLayer.cornerRadius
         }
-        
-        // Set same size and position (but flipped vertically)
-        reflectionLayer.bounds = mainLayer.bounds
         
         // Position reflection below the main layer
         let mainPosition = mainLayer.position
@@ -255,7 +278,7 @@ class ViewController: UIViewController {
         reflectionLayer.transform = reflectionTransform
         
         // Reduced opacity for reflection effect
-        reflectionLayer.opacity = 0.25
+        reflectionLayer.opacity = 1//0.75
         
         // Mark as reflection layer (for hit testing)
         reflectionLayer.name = "reflection_layer"
@@ -267,8 +290,8 @@ class ViewController: UIViewController {
         let gradientMask = CAGradientLayer()
         gradientMask.frame = reflectionLayer.bounds
         gradientMask.colors = [
-            UIColor.white.withAlphaComponent(0.7).cgColor,
-            UIColor.white.withAlphaComponent(0.0).cgColor
+            UIColor.blue.withAlphaComponent(0).cgColor,
+            UIColor.blue.withAlphaComponent(1).cgColor
         ]
         gradientMask.locations = [0.0, 1.0]
         gradientMask.startPoint = CGPoint(x: 0.5, y: 0.0)
@@ -281,7 +304,9 @@ class ViewController: UIViewController {
 
     private func updateReflectionForSticker(_ sticker: StickerModel) {
         guard let mainLayer = sticker.layer,
-              let reflectionLayer = sticker.reflectionLayer else { return }
+              let reflectionLayer = sticker.reflectionLayer else {
+            return
+        }
         
         // Update position to stay below main layer
         let mainPosition = mainLayer.position
@@ -294,11 +319,32 @@ class ViewController: UIViewController {
         reflectionLayer.transform = reflectionTransform
         
         // Update opacity
-        reflectionLayer.opacity = mainLayer.opacity * 0.25
+        reflectionLayer.opacity = mainLayer.opacity //* 0.75
         
-        // Update other properties
+        // Update bounds
         reflectionLayer.bounds = mainLayer.bounds
+        
+        // Update zPosition
         reflectionLayer.zPosition = mainLayer.zPosition - 1
+        
+        // Update the gradient mask frame
+        if let gradientMask = reflectionLayer.mask as? CAGradientLayer {
+            gradientMask.frame = reflectionLayer.bounds
+        }
+        
+        // Special handling for text layer reflection
+        if let textLayer = mainLayer.sublayers?.first as? CATextLayer,
+           let textReflectionLayer = reflectionLayer.sublayers?.first as? CATextLayer {
+            
+            // Update text properties
+            textReflectionLayer.string = textLayer.string
+            textReflectionLayer.fontSize = textLayer.fontSize
+            textReflectionLayer.foregroundColor = textLayer.foregroundColor
+            textReflectionLayer.frame = textLayer.frame
+            
+            // Update background color
+            reflectionLayer.backgroundColor = mainLayer.backgroundColor
+        }
     }
     
     private func updateStickerLayer(_ sticker: StickerModel) {
@@ -326,8 +372,10 @@ class ViewController: UIViewController {
                 }
             }
         case .image:
-            if let imageSticker = sticker as? ImageStickerModel {
-                layer.contents = imageSticker.image.cgImage
+            if let imageSticker = sticker as? ImageStickerModel,
+               let imageLayer = layer.sublayers?.first {
+                imageLayer.contents = imageSticker.image.cgImage
+                imageLayer.frame = CGRect(origin: .zero, size: sticker.size)
             }
         case .shape, .line:
             if let color = sticker.color {
@@ -335,7 +383,14 @@ class ViewController: UIViewController {
             }
         }
         
+        // CRITICAL: Update reflection after main layer updates
+        if sticker.hasReflection {
+            updateReflectionForSticker(sticker)
+        }
+        
         CATransaction.commit()
+        
+
     }
     
     private func removeSelectedSticker() {
@@ -366,6 +421,9 @@ class ViewController: UIViewController {
         guard let selectedSticker = stickerManager.selectedSticker,
               let layer = selectedSticker.layer else { return }
         
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        
         let translation = gesture.translation(in: canvasView)
         
         if gesture.state == .began {
@@ -391,15 +449,27 @@ class ViewController: UIViewController {
             CATransaction.setDisableActions(true)
             layer.position = newPosition
             CATransaction.commit()
+            
+            // Update reflection if exists
+            if updatedSticker.hasReflection {
+                updateReflectionForSticker(updatedSticker)
+            }
+            
+           
         }
         
         if gesture.state == .ended || gesture.state == .cancelled || gesture.state == .failed {
             lastPanPosition = nil
         }
+        
+        CATransaction.commit()
     }
-    
+
     @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
         guard let selectedSticker = stickerManager.selectedSticker else { return }
+        
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         
         if gesture.state == .began {
             lastScale = selectedSticker.scale
@@ -418,10 +488,15 @@ class ViewController: UIViewController {
         if gesture.state == .ended {
             lastScale = updatedSticker.scale
         }
+        
+        CATransaction.commit()
     }
-    
+
     @objc private func handleRotation(_ gesture: UIRotationGestureRecognizer) {
         guard let selectedSticker = stickerManager.selectedSticker else { return }
+        
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
         
         if gesture.state == .began {
             lastRotation = selectedSticker.rotation
@@ -440,7 +515,53 @@ class ViewController: UIViewController {
         if gesture.state == .ended {
             lastRotation = updatedSticker.rotation
         }
+        
+        CATransaction.commit()
     }
+    
+//    @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
+//        guard let selectedSticker = stickerManager.selectedSticker else { return }
+//        
+//        if gesture.state == .began {
+//            lastScale = selectedSticker.scale
+//        }
+//        
+//        let newScale = lastScale * gesture.scale
+//        
+//        // Update sticker model with scale limits
+//        var updatedSticker = selectedSticker
+//        updatedSticker.scale = max(0.1, min(newScale, 5.0))
+//        stickerManager.updateSticker(updatedSticker)
+//        
+//        // Update layer
+//        updateStickerLayer(updatedSticker)
+//        
+//        if gesture.state == .ended {
+//            lastScale = updatedSticker.scale
+//        }
+//    }
+    
+//    @objc private func handleRotation(_ gesture: UIRotationGestureRecognizer) {
+//        guard let selectedSticker = stickerManager.selectedSticker else { return }
+//        
+//        if gesture.state == .began {
+//            lastRotation = selectedSticker.rotation
+//        }
+//        
+//        let newRotation = lastRotation + gesture.rotation
+//        
+//        // Update sticker model
+//        var updatedSticker = selectedSticker
+//        updatedSticker.rotation = newRotation
+//        stickerManager.updateSticker(updatedSticker)
+//        
+//        // Update layer
+//        updateStickerLayer(updatedSticker)
+//        
+//        if gesture.state == .ended {
+//            lastRotation = updatedSticker.rotation
+//        }
+//    }
     
     // MARK: - Button Actions (IBActions)
     @IBAction func addImageTapped(_ sender: Any) {
@@ -624,67 +745,67 @@ class ViewController: UIViewController {
     }
     
     // MARK: - Animation Methods
-    private func animateAllStickers() {
-        // Animate edge lines
-        for sticker in stickerManager.lineStickers {
-            if let layer = sticker.layer, let edge = sticker.initialEdge {
-                animateLineGrowth(layer, edge: edge)
-            }
-        }
-        
-        // Animate all image, text, and shape stickers with current animation type
-        for sticker in stickerManager.allStickers {
-            if sticker.type != .line, let layer = sticker.layer {
-                LayerBuilder.shared.applyAnimation(to: layer, animationType: currentSelectedAnimation, duration: DURATION)
-            }
-        }
-    }
+//    private func animateAllStickers() {
+//        // Animate edge lines
+//        for sticker in stickerManager.lineStickers {
+//            if let layer = sticker.layer, let edge = sticker.initialEdge {
+//                animateLineGrowth(layer, edge: edge)
+//            }
+//        }
+//        
+//        // Animate all image, text, and shape stickers with current animation type
+//        for sticker in stickerManager.allStickers {
+//            if sticker.type != .line, let layer = sticker.layer {
+//                LayerBuilder.shared.applyAnimation(to: layer, animationType: currentSelectedAnimation, duration: DURATION)
+//            }
+//        }
+//    }
     
-    private func animateLineGrowth(_ layer: CALayer, edge: Edge) {
-        let animation = CABasicAnimation()
-        
-        switch edge {
-        case .top, .bottom:
-            animation.keyPath = "bounds.size.width"
-            animation.fromValue = 0
-            animation.toValue = canvasView.bounds.width
-        case .left, .right:
-            animation.keyPath = "bounds.size.height"
-            animation.fromValue = 0
-            animation.toValue = canvasView.bounds.height
-        }
-        
-        animation.duration = DURATION
-        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-        animation.fillMode = .forwards
-        animation.isRemovedOnCompletion = false
-        
-        layer.add(animation, forKey: "lineGrowth")
-    }
+//    private func animateLineGrowth(_ layer: CALayer, edge: Edge) {
+//        let animation = CABasicAnimation()
+//        
+//        switch edge {
+//        case .top, .bottom:
+//            animation.keyPath = "bounds.size.width"
+//            animation.fromValue = 0
+//            animation.toValue = canvasView.bounds.width
+//        case .left, .right:
+//            animation.keyPath = "bounds.size.height"
+//            animation.fromValue = 0
+//            animation.toValue = canvasView.bounds.height
+//        }
+//        
+//        animation.duration = DURATION
+//        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+//        animation.fillMode = .forwards
+//        animation.isRemovedOnCompletion = false
+//        
+//        layer.add(animation, forKey: "lineGrowth")
+//    }
     
     // MARK: - Play/Reset
-    private func resetAndReanimate() {
-        // Save current states
-        let savedStickers = stickerManager.allStickers
-        
-        // Remove all layers and animations
-        canvasView.layer.sublayers?.forEach {
-            $0.removeAllAnimations()
-            $0.removeFromSuperlayer()
-        }
-        
-        // Clear sticker manager
-        stickerManager = StickerManager()
-        
-        // Recreate all stickers with saved positions
-        for var sticker in savedStickers {
-            sticker.layer = nil // Clear old layer reference
-            addStickerToCanvas(sticker)
-        }
-        
-        // Reapply animations
-        animateAllStickers()
-    }
+//    private func resetAndReanimate() {
+//        // Save current states
+//        let savedStickers = stickerManager.allStickers
+//        
+//        // Remove all layers and animations
+//        canvasView.layer.sublayers?.forEach {
+//            $0.removeAllAnimations()
+//            $0.removeFromSuperlayer()
+//        }
+//        
+//        // Clear sticker manager
+//        stickerManager = StickerManager()
+//        
+//        // Recreate all stickers with saved positions
+//        for var sticker in savedStickers {
+//            sticker.layer = nil // Clear old layer reference
+//            addStickerToCanvas(sticker)
+//        }
+//        
+//        // Reapply animations
+//        animateAllStickers()
+//    }
     
     // MARK: - Export
     private func exportAnimatedVideo() {
@@ -792,5 +913,87 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
         let font = UIFont.systemFont(ofSize: 14)
         let width = text.size(withAttributes: [.font: font]).width + 20
         return CGSize(width: width, height: 40)
+    }
+}
+
+extension ViewController {
+    // MARK: - Animation Methods (Updated to handle reflections)
+    private func animateAllStickers() {
+        // Animate edge lines
+        for sticker in stickerManager.lineStickers {
+            if let layer = sticker.layer, let edge = sticker.initialEdge {
+                animateLineGrowth(layer, edge: edge)
+                
+                // Also animate reflection if it exists
+                if let reflectionLayer = sticker.reflectionLayer {
+                    animateLineGrowth(reflectionLayer, edge: edge)
+                }
+            }
+        }
+        
+        // Animate all image, text, and shape stickers with current animation type
+        for sticker in stickerManager.allStickers {
+            if sticker.type != .line {
+                if let layer = sticker.layer {
+                    LayerBuilder.shared.applyAnimation(to: layer,
+                                                       animationType: currentSelectedAnimation,
+                                                       duration: DURATION)
+                }
+                
+                // Apply same animation to reflection layer
+                if let reflectionLayer = sticker.reflectionLayer {
+                    LayerBuilder.shared.applyAnimation(to: reflectionLayer,
+                                                       animationType: currentSelectedAnimation,
+                                                       duration: DURATION)
+                }
+            }
+        }
+    }
+
+    private func animateLineGrowth(_ layer: CALayer, edge: Edge) {
+        let animation = CABasicAnimation()
+        
+        switch edge {
+        case .top, .bottom:
+            animation.keyPath = "bounds.size.width"
+            animation.fromValue = 0
+            animation.toValue = canvasView.bounds.width
+        case .left, .right:
+            animation.keyPath = "bounds.size.height"
+            animation.fromValue = 0
+            animation.toValue = canvasView.bounds.height
+        }
+        
+        animation.duration = DURATION
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        animation.fillMode = .forwards
+        animation.isRemovedOnCompletion = false
+        
+        layer.add(animation, forKey: "lineGrowth")
+    }
+
+    // MARK: - Reset and Reanimate (Updated)
+    private func resetAndReanimate() {
+        // Save current states
+        let savedStickers = stickerManager.allStickers
+        
+        // Remove all layers and animations
+        canvasView.layer.sublayers?.forEach {
+            $0.removeAllAnimations()
+            $0.removeFromSuperlayer()
+        }
+        
+        // Clear sticker manager
+        stickerManager = StickerManager()
+        
+        // Recreate all stickers with saved positions
+        for var sticker in savedStickers {
+            sticker.layer = nil // Clear old layer reference
+            sticker.reflectionLayer = nil // Clear old reflection reference
+            addStickerToCanvas(sticker)
+        }
+        
+        // Reapply animations (including to reflection layers)
+        animateAllStickers()
     }
 }
