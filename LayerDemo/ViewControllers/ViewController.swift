@@ -1000,4 +1000,6 @@ extension ViewController {
         // Reapply animations (including to reflection layers)
         animateAllStickers()
     }
+    
+    
 }
