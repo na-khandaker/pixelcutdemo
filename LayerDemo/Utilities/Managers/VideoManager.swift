@@ -12,6 +12,7 @@ class VideoManager {
     
     // MARK: - Properties
     private let DURATION: TimeInterval = 1.2 // Match your animation duration
+    private var exportCanvasSize: CGSize = .zero
     
     // MARK: - Public Methods
     func exportVideoWithLayerAnimation(
@@ -136,7 +137,8 @@ class VideoManager {
         let width = (baseWidth / 2).rounded() * 2
         let height = (baseHeight / 2).rounded() * 2
         
-        return CGSize(width: width, height: height)
+        exportCanvasSize = CGSize(width: width, height: height)
+        return exportCanvasSize
     }
     
     private func createVideoComposition(
@@ -237,9 +239,10 @@ class VideoManager {
             originalFrame = stickerLayer.frame
         } else {
             // If no layer, use sticker's position and size
+            let stickerPosition = sticker.relativePosition.absolutePosition(for: exportCanvasSize)
             originalFrame = CGRect(
-                x: sticker.position.x - sticker.size.width / 2,
-                y: sticker.position.y - sticker.size.height / 2,
+                x: stickerPosition.x - sticker.size.width / 2,
+                y: stickerPosition.y - sticker.size.height / 2,
                 width: sticker.size.width,
                 height: sticker.size.height
             )

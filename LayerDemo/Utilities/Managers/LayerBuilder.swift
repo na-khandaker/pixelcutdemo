@@ -9,18 +9,20 @@ import UIKit
 
 // MARK: - Protocol for Layer Builder
 protocol LayerBuilderProtocol {
-    func createLayer(from sticker: StickerModel) -> CALayer
+    func createLayer(from sticker: StickerModel, canvasSize: CGSize) -> CALayer
     func applyAnimation(to layer: CALayer, animationType: AnimationType, duration: TimeInterval)
 }
 
 // MARK: - Layer Builder with Reflection Support
 class LayerBuilder: LayerBuilderProtocol {
     static let shared = LayerBuilder()
+    var currentCanvasSize: CGSize = .zero
     
     private init() {}
     
-    func createLayer(from sticker: StickerModel) -> CALayer {
-        let baseLayer = createBaseLayer(from: sticker)
+    func createLayer(from sticker: StickerModel, canvasSize: CGSize) -> CALayer {
+        //let baseLayer = createBaseLayer(from: sticker)
+        currentCanvasSize = canvasSize
         
         switch sticker.type {
         case .text:
@@ -39,7 +41,7 @@ class LayerBuilder: LayerBuilderProtocol {
         let baseLayer = CALayer()
         
         // Apply common properties
-        baseLayer.position = sticker.position
+        baseLayer.position = sticker.relativePosition.absolutePosition(for: currentCanvasSize)
         baseLayer.bounds.size = sticker.size
         baseLayer.transform = CATransform3DMakeRotation(sticker.rotation, 0, 0, 1)
         baseLayer.transform = CATransform3DScale(baseLayer.transform, sticker.scale, sticker.scale, 1)
@@ -495,7 +497,7 @@ extension LayerBuilder {
         // Apply base properties to container layer
         let containerLayer = CALayer()
         containerLayer.frame = CGRect(origin: .zero, size: sticker.size)
-        containerLayer.position = sticker.position
+        containerLayer.position = sticker.relativePosition.absolutePosition(for: currentCanvasSize)
         containerLayer.bounds.size = sticker.size
         containerLayer.transform = CATransform3DMakeRotation(sticker.rotation, 0, 0, 1)
         containerLayer.transform = CATransform3DScale(containerLayer.transform, sticker.scale, sticker.scale, 1)
@@ -532,7 +534,7 @@ extension LayerBuilder {
         // Apply base properties
         let containerLayer = CALayer()
         containerLayer.frame = CGRect(origin: .zero, size: sticker.size)
-        containerLayer.position = sticker.position
+        containerLayer.position = sticker.relativePosition.absolutePosition(for: currentCanvasSize)
         containerLayer.bounds.size = sticker.size
         containerLayer.transform = CATransform3DMakeRotation(sticker.rotation, 0, 0, 1)
         containerLayer.transform = CATransform3DScale(containerLayer.transform, sticker.scale, sticker.scale, 1)
@@ -567,7 +569,7 @@ extension LayerBuilder {
         // Apply base properties
         let containerLayer = CALayer()
         containerLayer.frame = CGRect(origin: .zero, size: sticker.size)
-        containerLayer.position = sticker.position
+        containerLayer.position = sticker.relativePosition.absolutePosition(for: currentCanvasSize)
         containerLayer.bounds.size = sticker.size
         containerLayer.transform = CATransform3DMakeRotation(sticker.rotation, 0, 0, 1)
         containerLayer.transform = CATransform3DScale(containerLayer.transform, sticker.scale, sticker.scale, 1)
@@ -697,5 +699,22 @@ extension LayerBuilder {
         animation.isRemovedOnCompletion = false
         
         layer.add(animation, forKey: "scaleAnimation")
+    }
+}
+
+extension CGPoint {
+    func absolutePosition(for canvasSize: CGSize) -> CGPoint {
+        return CGPoint(x: self.x * canvasSize.width, y: self.y * canvasSize.height)
+    }
+    
+    func relativePosition(for canvasSize: CGSize) -> CGPoint {
+        guard canvasSize.width != 0, canvasSize.height != 0 else {
+                   return .zero
+               }
+               
+               return CGPoint(
+                   x: self.x / canvasSize.width,
+                   y: self.y / canvasSize.height
+               )
     }
 }

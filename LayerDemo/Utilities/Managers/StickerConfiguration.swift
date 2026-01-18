@@ -9,20 +9,20 @@ import UIKit
 
 // MARK: - Base Configuration
 class StickerConfiguration {
-    var position: CGPoint
+    var relativePosition: CGPoint
     var size: CGSize
     var color: UIColor?
     var zIndex: Int = 0
     var hasReflection: Bool = false
     var opacity: Float = 1.0
     
-    init(position: CGPoint, 
-         size: CGSize, 
+    init(relativePosition: CGPoint,
+         size: CGSize,
          color: UIColor? = nil,
          zIndex: Int = 0,
          hasReflection: Bool = false,
          opacity: Float = 1.0) {
-        self.position = position
+        self.relativePosition = relativePosition
         self.size = size
         self.color = color
         self.zIndex = zIndex
@@ -35,16 +35,16 @@ class StickerConfiguration {
 class ImageStickerConfiguration: StickerConfiguration {
     var image: UIImage
     
-    init(position: CGPoint, 
-         size: CGSize, 
+    init(relativePosition: CGPoint,
+         size: CGSize,
          image: UIImage,
          color: UIColor? = nil,
          zIndex: Int = 0,
          hasReflection: Bool = false,
          opacity: Float = 1.0) {
         self.image = image
-        super.init(position: position, 
-                   size: size, 
+        super.init(relativePosition: relativePosition,
+                   size: size,
                    color: color,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
@@ -60,8 +60,8 @@ class TextStickerConfiguration: StickerConfiguration {
     var textColor: UIColor
     var textAlignment: NSTextAlignment = .center
     
-    init(position: CGPoint, 
-         size: CGSize, 
+    init(relativePosition: CGPoint,
+         size: CGSize,
          text: String,
          fontSize: CGFloat = 36,
          fontName: String? = nil,
@@ -75,8 +75,8 @@ class TextStickerConfiguration: StickerConfiguration {
         self.fontName = fontName
         self.textColor = textColor
         
-        super.init(position: position, 
-                   size: size, 
+        super.init(relativePosition: relativePosition,
+                   size: size,
                    color: backgroundColor,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
@@ -89,8 +89,8 @@ class ShapeStickerConfiguration: StickerConfiguration {
     var shapeType: ShapeType = .rectangle
     var cornerRadius: CGFloat = 0
     
-    init(position: CGPoint, 
-         size: CGSize, 
+    init(relativePosition: CGPoint,
+         size: CGSize,
          color: UIColor,
          shapeType: ShapeType = .rectangle,
          cornerRadius: CGFloat = 0,
@@ -100,8 +100,8 @@ class ShapeStickerConfiguration: StickerConfiguration {
         self.shapeType = shapeType
         self.cornerRadius = cornerRadius
         
-        super.init(position: position, 
-                   size: size, 
+        super.init(relativePosition: relativePosition,
+                   size: size,
                    color: color,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
@@ -115,7 +115,7 @@ class LineStickerConfiguration: StickerConfiguration {
     var initialEdge: Edge?
     var lineWidth: CGFloat = 12.0
     
-    init(position: CGPoint, 
+    init(relativePosition: CGPoint, 
          size: CGSize, 
          color: UIColor,
          isHorizontal: Bool? = nil,
@@ -128,8 +128,8 @@ class LineStickerConfiguration: StickerConfiguration {
         self.initialEdge = initialEdge
         self.lineWidth = lineWidth
         
-        super.init(position: position, 
-                   size: size, 
+        super.init(relativePosition: relativePosition,
+                   size: size,
                    color: color,
                    zIndex: zIndex,
                    hasReflection: hasReflection,

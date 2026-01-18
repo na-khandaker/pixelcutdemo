@@ -17,6 +17,8 @@ class ViewController: UIViewController {
     // MARK: - IBOutlets
     @IBOutlet weak var animationCollectionView: UICollectionView!
     @IBOutlet weak var canvasView: UIView!
+    @IBOutlet weak var optionCollectionView: UICollectionView!
+    @IBOutlet weak var animationHolderView: UIView!
     
     // MARK: - Constants
     private let LINE_WIDTH: CGFloat = 12.0
@@ -72,7 +74,7 @@ class ViewController: UIViewController {
         
         // Create a text sticker with reflection
         let textConfig = TextStickerConfiguration(
-            position: CGPoint(x: canvasBounds.midX, y: canvasBounds.midY - 150),
+            relativePosition: CGPoint(x: 0.5, y: (canvasBounds.midY - 150) / canvasBounds.height),
             size: CGSize(width: 300, height: 80),
             text: "Hello World!",
             fontSize: 36,
@@ -110,7 +112,7 @@ class ViewController: UIViewController {
         
         // Top line
         let topConfig = LineStickerConfiguration(
-            position: CGPoint(x: 0, y: LINE_WIDTH / 2),
+            relativePosition: CGPoint(x: 0, y: (LINE_WIDTH / 2) / canvasBounds.height),
             size: CGSize(width: 1, height: LINE_WIDTH),
             color: .systemBlue,
             isHorizontal: true,
@@ -125,7 +127,7 @@ class ViewController: UIViewController {
         
         // Bottom line
         let bottomConfig = LineStickerConfiguration(
-            position: CGPoint(x: canvasBounds.width, y: canvasBounds.height - LINE_WIDTH / 2),
+            relativePosition: CGPoint(x: 1, y: (canvasBounds.height - LINE_WIDTH / 2) / canvasBounds.height),
             size: CGSize(width: 1, height: LINE_WIDTH),
             color: .systemRed,
             isHorizontal: true,
@@ -140,7 +142,7 @@ class ViewController: UIViewController {
         
         // Left line
         let leftConfig = LineStickerConfiguration(
-            position: CGPoint(x: LINE_WIDTH / 2, y: 0),
+            relativePosition: CGPoint(x: (LINE_WIDTH / 2) / canvasBounds.width , y: 0),
             size: CGSize(width: LINE_WIDTH, height: 1),
             color: .systemGreen,
             isHorizontal: false,
@@ -155,7 +157,7 @@ class ViewController: UIViewController {
         
         // Right line
         let rightConfig = LineStickerConfiguration(
-            position: CGPoint(x: canvasBounds.width - LINE_WIDTH / 2, y: canvasBounds.height),
+            relativePosition: CGPoint(x: (canvasBounds.width - LINE_WIDTH / 2) / canvasBounds.width, y: 1),
             size: CGSize(width: LINE_WIDTH, height: 1),
             color: .systemOrange,
             isHorizontal: false,
@@ -174,7 +176,7 @@ class ViewController: UIViewController {
         
         let size: CGFloat = canvasView.bounds.width / 3
         let config = ImageStickerConfiguration(
-            position: CGPoint(x: canvasView.bounds.width / 2, y: canvasView.bounds.height / 2),
+            relativePosition: CGPoint(x: 0.5, y: 0.5),
             size: CGSize(width: size, height: size),
             image: image,
             color: .clear,
@@ -204,7 +206,7 @@ class ViewController: UIViewController {
 //    }
     private func addStickerToCanvas(_ sticker: StickerModel) {
         // Create main layer
-        let layer = LayerBuilder.shared.createLayer(from: sticker)
+        let layer = LayerBuilder.shared.createLayer(from: sticker, canvasSize: canvasView.bounds.size)
         canvasView.layer.addSublayer(layer)
         
         // Create a mutable copy to update
@@ -353,7 +355,7 @@ class ViewController: UIViewController {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         
-        layer.position = sticker.position
+        layer.position = sticker.relativePosition.absolutePosition(for: canvasView.bounds.size)
         layer.bounds.size = sticker.size
         layer.transform = CATransform3DMakeRotation(sticker.rotation, 0, 0, 1)
         layer.transform = CATransform3DScale(layer.transform, sticker.scale, sticker.scale, 1)
@@ -431,7 +433,7 @@ class ViewController: UIViewController {
             if let reflectionLayer = selectedSticker.reflectionLayer {
                 reflectionLayer.removeAllAnimations()
             }
-            lastPanPosition = selectedSticker.position
+            lastPanPosition = selectedSticker.relativePosition.absolutePosition(for: canvasView.bounds.size)
         }
         
         if let lastPosition = lastPanPosition {
@@ -445,7 +447,7 @@ class ViewController: UIViewController {
             
             // Update sticker model
             var updatedSticker = selectedSticker
-            updatedSticker.position = newPosition
+            updatedSticker.relativePosition = newPosition.relativePosition(for: canvasView.bounds.size)
             stickerManager.updateSticker(updatedSticker)
             
             // Update layer
@@ -578,11 +580,11 @@ class ViewController: UIViewController {
         }
         
         let size: CGFloat = canvasView.bounds.width / 4
-        let randomX = CGFloat.random(in: size/2...(canvasView.bounds.width - size/2))
-        let randomY = CGFloat.random(in: size/2...(canvasView.bounds.height - size/2))
+        let randomX = CGFloat.random(in: size/2...(canvasView.bounds.width - size/2)) / canvasView.bounds.width
+        let randomY = CGFloat.random(in: size/2...(canvasView.bounds.height - size/2)) / canvasView.bounds.height
         
         let config = ImageStickerConfiguration(
-            position: CGPoint(x: randomX, y: randomY),
+            relativePosition: CGPoint(x: randomX , y: randomY),
             size: CGSize(width: size, height: size),
             image: image,
             color: .clear,
@@ -599,8 +601,8 @@ class ViewController: UIViewController {
         let canvasBounds = canvasView.bounds
         let randomLength = CGFloat.random(in: 50...200)
         let randomThickness = CGFloat.random(in: 5...20)
-        let randomX = CGFloat.random(in: 50...(canvasBounds.width - 50))
-        let randomY = CGFloat.random(in: 50...(canvasBounds.height - 50))
+        let randomX = CGFloat.random(in: 50...(canvasBounds.width - 50)) / canvasBounds.width
+        let randomY = CGFloat.random(in: 50...(canvasBounds.height - 50)) / canvasBounds.height
         let isHorizontal = Bool.random()
         
         let size = isHorizontal ?
@@ -615,7 +617,7 @@ class ViewController: UIViewController {
         )
         
         let config = LineStickerConfiguration(
-            position: CGPoint(x: randomX, y: randomY),
+            relativePosition: CGPoint(x: randomX, y: randomY),
             size: size,
             color: randomColor,
             isHorizontal: isHorizontal,
@@ -632,11 +634,11 @@ class ViewController: UIViewController {
     
     @IBAction func addTextTapped(_ sender: Any) {
         let size = CGSize(width: 200, height: 60)
-        let randomX = CGFloat.random(in: size.width/2...(canvasView.bounds.width - size.width/2))
-        let randomY = CGFloat.random(in: size.height/2...(canvasView.bounds.height - size.height/2))
+        let randomX = CGFloat.random(in: size.width/2...(canvasView.bounds.width - size.width/2)) / canvasView.bounds.width
+        let randomY = CGFloat.random(in: size.height/2...(canvasView.bounds.height - size.height/2)) / canvasView.bounds.height
         
         let config = TextStickerConfiguration(
-            position: CGPoint(x: randomX, y: randomY),
+            relativePosition: CGPoint(x: randomX, y: randomY),
             size: size,
             text: "Text \(imageCounter)",
             fontSize: 24,
@@ -653,10 +655,20 @@ class ViewController: UIViewController {
         imageCounter += 1
     }
     
+    
+    @IBAction func animationCollectionViewCrossTapped(_ sender: Any) {
+        UIView.animate(withDuration: 0.2) { [weak self] in
+            guard let self else { return }
+            animationHolderView.isHidden = true
+            optionCollectionView.isHidden = false
+        }
+        
+    }
+    
     @IBAction func addShapeTapped(_ sender: Any) {
         let size = CGSize(width: 80, height: 80)
-        let randomX = CGFloat.random(in: size.width/2...(canvasView.bounds.width - size.width/2))
-        let randomY = CGFloat.random(in: size.height/2...(canvasView.bounds.height - size.height/2))
+        let randomX = CGFloat.random(in: size.width/2...(canvasView.bounds.width - size.width/2)) / canvasView.bounds.width
+        let randomY = CGFloat.random(in: size.height/2...(canvasView.bounds.height - size.height/2)) / canvasView.bounds.height
         
         let randomColor = UIColor(
             red: CGFloat.random(in: 0...1),
@@ -666,7 +678,7 @@ class ViewController: UIViewController {
         )
         
         let config = ShapeStickerConfiguration(
-            position: CGPoint(x: randomX, y: randomY),
+            relativePosition: CGPoint(x: randomX, y: randomY),
             size: size,
             color: randomColor,
             shapeType: .circle,
@@ -892,22 +904,67 @@ class ViewController: UIViewController {
 // MARK: - UICollectionView Extensions
 extension ViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return AnimationType.allCases.count
+        if collectionView == animationCollectionView {
+            return AnimationType.allCases.count
+        } else if collectionView == optionCollectionView {
+            return 4
+        }
+        return 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "AnimationCollectionViewCell", for: indexPath) as! AnimationCollectionViewCell
-        cell.nameLabel.text = AnimationType.allCases[indexPath.row].rawValue
-        cell.isSelected = (AnimationType.allCases[indexPath.row] == currentSelectedAnimation)
+        if collectionView == animationCollectionView {
+
+            cell.nameLabel.text = AnimationType.allCases[indexPath.row].rawValue
+            cell.isSelected = (AnimationType.allCases[indexPath.row] == currentSelectedAnimation)
+
+        } else if collectionView == optionCollectionView {
+            switch indexPath.item {
+            case 0:
+                cell.nameLabel.text = "Animate"
+            case 1:
+                cell.nameLabel.text = "Play"
+            case 2:
+                cell.nameLabel.text = "Resize"
+            case 3:
+                cell.nameLabel.text = "Export"
+            default:
+                cell.nameLabel.text = "N?A"
+            }
+        }
+        
         return cell
     }
 }
 
 extension ViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        currentSelectedAnimation = AnimationType.allCases[indexPath.row]
-        resetAndReanimate()
-        collectionView.reloadData()
+        if collectionView == animationCollectionView {
+            currentSelectedAnimation = AnimationType.allCases[indexPath.row]
+            resetAndReanimate()
+            collectionView.reloadData()
+        } else if collectionView == optionCollectionView {
+            switch indexPath.item {
+            case 0:
+            //"Animate"
+                animationHolderView.isHidden = false
+                optionCollectionView.isHidden = true
+            case 1:
+            //"Play"
+                playTapped(UIButton())
+            case 2:
+            //"Resize"
+                break
+                //pushViewController(<#T##UIViewController#>, animated: <#T##Bool#>)
+            case 3:
+            //"Export"
+                exportTapped(UIButton())
+            default:
+                break
+            //"N?A"
+            }
+        }
     }
 }
 

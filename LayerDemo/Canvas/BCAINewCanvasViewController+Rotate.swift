@@ -10,38 +10,38 @@ import UIKit
 
 extension BCAINewCanvasViewController: UIGestureRecognizerDelegate {
     
-    func addAllGesture(){
-        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-        panGesture.delegate = self
-        gestureView.addGestureRecognizer(panGesture)
-        
-        let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
-        pinchGesture.delegate = self
-        gestureView.addGestureRecognizer(pinchGesture)
-        
-        gestureView.isUserInteractionEnabled = true
-    }
+//    func addAllGesture(){
+//        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+//        panGesture.delegate = self
+//        gestureView.addGestureRecognizer(panGesture)
+//        //
+//        //        let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
+//        //        pinchGesture.delegate = self
+//        //        gestureView.addGestureRecognizer(pinchGesture)
+//        
+//        gestureView.isUserInteractionEnabled = true
+//    }
     
     
-    @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
-        if gesture.state == .changed {
-            
-            let newScale = canvasStateModel.filterTransfromScale * gesture.scale
-            
-            let minScale: CGFloat = 1.0
-            let maxScale = 6.0
-            
-            if newScale > maxScale{
-                return
-            }
-            
-            if newScale >= minScale {
-                imageView.transform = CGAffineTransform(scaleX: newScale, y: newScale)
-                canvasStateModel.filterTransfromScale = newScale
-            }
-            gesture.scale = 1.0
-        }
-    }
+    //    @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
+    //        if gesture.state == .changed {
+    //
+    //            let newScale = canvasStateModel.filterTransfromScale * gesture.scale
+    //
+    //            let minScale: CGFloat = 1.0
+    //            let maxScale = 6.0
+    //
+    //            if newScale > maxScale{
+    //                return
+    //            }
+    //
+    //            if newScale >= minScale {
+    //                imageView.transform = CGAffineTransform(scaleX: newScale, y: newScale)
+    //                canvasStateModel.filterTransfromScale = newScale
+    //            }
+    //            gesture.scale = 1.0
+    //        }
+    //    }
     
     
     
@@ -50,31 +50,31 @@ extension BCAINewCanvasViewController: UIGestureRecognizerDelegate {
     }
     
     
-    @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
-        
-        alignViewColor(c: .clear)
-        if isHepticOn{
-//            hepticFeedBack()
-            isHepticOn = false
-        }
-        
-        let translation = gesture.translation(in: gestureView)
-        
-        imageView.center.x += translation.x
-        imageView.center.y += translation.y
-        setImageViewBoundaries() ///set image move boundaries
-        
-        gesture.setTranslation(.zero, in: gestureView)
-        
-        self.alignViewsSetup()
-        self.detectCanvasBGViewInset() ///show border when grayImageView touch Canvas any edges.
-        
-        if gesture.state == .ended{
-            alignViewHideShow(vFlag: true, hFlag: true)
-            canvasBgView.layer.borderWidth = 0.0
-            isHepticOn = true
-        }
-    }
+//    @objc func handlePan(_ gesture: UIPanGestureRecognizer) {
+//        
+//        alignViewColor(c: .clear)
+//        if isHepticOn{
+//            //            hepticFeedBack()
+//            isHepticOn = false
+//        }
+//        
+//        let translation = gesture.translation(in: gestureView)
+//        
+//        imageView.center.x += translation.x
+//        imageView.center.y += translation.y
+//        setImageViewBoundaries() ///set image move boundaries
+//        
+//        gesture.setTranslation(.zero, in: gestureView)
+//        
+//        self.alignViewsSetup()
+//        self.detectCanvasBGViewInset() ///show border when grayImageView touch Canvas any edges.
+//        
+//        if gesture.state == .ended{
+//            alignViewHideShow(vFlag: true, hFlag: true)
+//            canvasBgView.layer.borderWidth = 0.0
+//            isHepticOn = true
+//        }
+//    }
     
     
     private func setImageViewBoundaries(){

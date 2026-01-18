@@ -13,7 +13,7 @@ class StickerModel {
     var type: StickerType
     var layer: CALayer?
     var reflectionLayer: CALayer?
-    var position: CGPoint
+    var relativePosition: CGPoint
     var size: CGSize
     var rotation: CGFloat = 0
     var scale: CGFloat = 1.0
@@ -29,7 +29,7 @@ class StickerModel {
     
     init(id: String = UUID().uuidString,
          type: StickerType,
-         position: CGPoint,
+         relativePosition: CGPoint,
          size: CGSize,
          color: UIColor? = nil,
          zIndex: Int = 0,
@@ -39,7 +39,7 @@ class StickerModel {
          initialEdge: Edge? = nil) {
         self.id = id
         self.type = type
-        self.position = position
+        self.relativePosition = relativePosition
         self.size = size
         self.color = color
         self.zIndex = zIndex
@@ -56,7 +56,7 @@ class ImageStickerModel: StickerModel {
     
     init(id: String = UUID().uuidString,
          image: UIImage,
-         position: CGPoint,
+         relativePosition: CGPoint,
          size: CGSize,
          color: UIColor? = nil,
          zIndex: Int = 0,
@@ -66,7 +66,7 @@ class ImageStickerModel: StickerModel {
         
         super.init(id: id,
                    type: .image,
-                   position: position,
+                   relativePosition: relativePosition,
                    size: size,
                    color: color,
                    zIndex: zIndex,
@@ -85,7 +85,7 @@ class TextStickerModel: StickerModel {
     
     init(id: String = UUID().uuidString,
          text: String,
-         position: CGPoint,
+         relativePosition: CGPoint,
          size: CGSize,
          fontSize: CGFloat = 36,
          fontName: String? = nil,
@@ -101,7 +101,7 @@ class TextStickerModel: StickerModel {
         
         super.init(id: id,
                    type: .text,
-                   position: position,
+                   relativePosition: relativePosition,
                    size: size,
                    color: backgroundColor,
                    zIndex: zIndex,
@@ -116,7 +116,7 @@ class ShapeStickerModel: StickerModel {
     var cornerRadius: CGFloat = 0
     
     init(id: String = UUID().uuidString,
-         position: CGPoint,
+         relativePosition: CGPoint,
          size: CGSize,
          color: UIColor,
          shapeType: ShapeType = .rectangle,
@@ -129,7 +129,7 @@ class ShapeStickerModel: StickerModel {
         
         super.init(id: id,
                    type: .shape,
-                   position: position,
+                   relativePosition: relativePosition,
                    size: size,
                    color: color,
                    zIndex: zIndex,
@@ -143,7 +143,7 @@ class LineStickerModel: StickerModel {
     var lineWidth: CGFloat = 12.0
     
     init(id: String = UUID().uuidString,
-         position: CGPoint,
+         relativePosition: CGPoint,
          size: CGSize,
          color: UIColor,
          isHorizontal: Bool? = nil,
@@ -156,7 +156,7 @@ class LineStickerModel: StickerModel {
         
         super.init(id: id,
                    type: .line,
-                   position: position,
+                   relativePosition: relativePosition,
                    size: size,
                    color: color,
                    zIndex: zIndex,

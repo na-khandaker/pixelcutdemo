@@ -24,7 +24,7 @@ class StickerFactory: StickerFactoryProtocol {
     func createTextSticker(configuration: TextStickerConfiguration) -> TextStickerModel {
         return TextStickerModel(
             text: configuration.text,
-            position: configuration.position,
+            relativePosition: configuration.relativePosition,
             size: configuration.size,
             fontSize: configuration.fontSize,
             fontName: configuration.fontName,
@@ -39,7 +39,7 @@ class StickerFactory: StickerFactoryProtocol {
     func createImageSticker(configuration: ImageStickerConfiguration) -> ImageStickerModel {
         return ImageStickerModel(
             image: configuration.image,
-            position: configuration.position,
+            relativePosition: configuration.relativePosition,
             size: configuration.size,
             color: configuration.color,
             zIndex: configuration.zIndex,
@@ -50,7 +50,7 @@ class StickerFactory: StickerFactoryProtocol {
     
     func createShapeSticker(configuration: ShapeStickerConfiguration) -> ShapeStickerModel {
         return ShapeStickerModel(
-            position: configuration.position,
+            relativePosition: configuration.relativePosition,
             size: configuration.size,
             color: configuration.color ?? .systemPurple,
             shapeType: configuration.shapeType,
@@ -65,7 +65,7 @@ class StickerFactory: StickerFactoryProtocol {
         let isHorizontal = configuration.isHorizontal ?? (configuration.size.height < configuration.size.width)
         
         return LineStickerModel(
-            position: configuration.position,
+            relativePosition: configuration.relativePosition,
             size: configuration.size,
             color: configuration.color ?? getColorForEdge(configuration.initialEdge),
             isHorizontal: isHorizontal,
