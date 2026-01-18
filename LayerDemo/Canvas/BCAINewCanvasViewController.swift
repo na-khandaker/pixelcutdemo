@@ -34,7 +34,7 @@ class BCAINewCanvasViewController: UIViewController {
     
     // MARK: - Properties
     private var currentSelectedAnimation: AnimationType = .RevealRight
-    private var stickerManager = StickerManager()
+    var stickerManager: StickerManager!
     private var imageCounter = 0
     
     // MARK: - IBOutlets
@@ -71,6 +71,10 @@ class BCAINewCanvasViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        if stickerManager == nil {
+            stickerManager = StickerManager()
+        }
+        
         if let image = UIImage(named: "sampleImage") {
             selectImage = image
         }
@@ -90,9 +94,36 @@ class BCAINewCanvasViewController: UIViewController {
         canvasCollectionView.selectItem(at: IndexPath(row: canvasStateModel.lastSelectedIndex, section: 0),
                                         animated: true,
                                         scrollPosition: .centeredHorizontally)
-        createInitialStickers()
+        // Only create initial stickers if the sticker manager is empty
+                if stickerManager.allStickers.isEmpty {
+                    createInitialStickers()
+                } else {
+                    // If stickers already exist, add them to the canvas
+                    addExistingStickersToCanvas()
+                }
         animateAllStickers()
     }
+    
+    private func addExistingStickersToCanvas() {
+            // Remove any existing layers
+//            canvasBgView.layer.sublayers?.forEach {
+//                $0.removeFromSuperlayer()
+//            }
+        let layers = canvasBgView.layer.sublayers
+            
+            // Add all existing stickers to the canvas
+            for var sticker in stickerManager.allStickers {
+                sticker.layer = nil // Clear old layer reference
+                sticker.reflectionLayer = nil // Clear old reflection reference
+                addStickerToCanvas(sticker)
+            }
+            
+            // Restore selection if any
+            if let selectedSticker = stickerManager.selectedSticker {
+                stickerManager.setSelectedSticker(withId: selectedSticker.id)
+                highlightSelectedSticker()
+            }
+        }
     
     // MARK: - Canvas Setup
     private func imageViewSetup() {
@@ -228,6 +259,16 @@ class BCAINewCanvasViewController: UIViewController {
         dismiss(animated: true, completion: nil)
     }
     
+//    @IBAction func didTapCanvasDone(_ sender: UIButton) {
+//        let childOrigin = imageView.frame.origin
+//        let shift = CGPoint(x: childOrigin.x / canvasBgView.frame.width,
+//                            y: childOrigin.y / canvasBgView.frame.height)
+//        
+//        canvasStateModel.filterShift = shift
+//        delegate?.didDismissNewCanvasVC(canvasModel: canvasStateModel)
+//        dismiss(animated: true)
+//    }
+    
     @IBAction func didTapCanvasDone(_ sender: UIButton) {
         let childOrigin = imageView.frame.origin
         let shift = CGPoint(x: childOrigin.x / canvasBgView.frame.width,
@@ -235,8 +276,23 @@ class BCAINewCanvasViewController: UIViewController {
         
         canvasStateModel.filterShift = shift
         delegate?.didDismissNewCanvasVC(canvasModel: canvasStateModel)
+        
+        // Pass back the updated sticker manager
+        if self.delegate is ViewController {
+            // This requires casting or modifying the delegate protocol
+        }
+        
+        clearCanvas()
         dismiss(animated: true)
     }
+    
+    private func clearCanvas() {
+        stickerManager.allStickers.forEach {
+            $0.layer?.removeAllAnimations()
+            $0.layer?.removeFromSuperlayer()
+        }
+    }
+    
     
     // MARK: - Sticker Creation Methods
     private func createInitialStickers() {
@@ -551,10 +607,10 @@ class BCAINewCanvasViewController: UIViewController {
         canvasBgView.addGestureRecognizer(rotation)
         
         // Enable simultaneous gesture recognition
-        pan.delegate = self
-        pinch.delegate = self
-        rotation.delegate = self
-        tap.delegate = self
+//        pan.delegate = self
+//        pinch.delegate = self
+//        rotation.delegate = self
+//        tap.delegate = self
     }
     
     // MARK: - Gesture Handlers

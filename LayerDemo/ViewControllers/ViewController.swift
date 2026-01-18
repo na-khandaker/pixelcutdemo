@@ -42,7 +42,15 @@ class ViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         setupGestures()
-        createInitialStickers()
+        
+        if stickerManager.allStickers.isEmpty {
+            createInitialStickers()
+        }
+//        else {
+//            // If stickers already exist, add them to the canvas
+//            addExistingStickersToCanvas()
+//        }
+        //createInitialStickers()
         animateAllStickers()
     }
     
@@ -657,7 +665,7 @@ class ViewController: UIViewController {
     
     
     @IBAction func animationCollectionViewCrossTapped(_ sender: Any) {
-        UIView.animate(withDuration: 0.2) { [weak self] in
+        UIView.animate(withDuration: 0.25) { [weak self] in
             guard let self else { return }
             animationHolderView.isHidden = true
             optionCollectionView.isHidden = false
@@ -955,6 +963,7 @@ extension ViewController: UICollectionViewDelegate {
                 playTapped(UIButton())
             case 2:
             //"Resize"
+                presentCanvasViewController()
                 break
                 //pushViewController(<#T##UIViewController#>, animated: <#T##Bool#>)
             case 3:
@@ -1057,6 +1066,50 @@ extension ViewController {
         // Reapply animations (including to reflection layers)
         animateAllStickers()
     }
+}
+
+// MARK: - ViewController.swift (Add these changes)
+
+// Update the option collectionView selection handler
+extension ViewController {
     
+    private func presentCanvasViewController() {
+        // Get the storyboard and instantiate the view controller
+        let storyboard = UIStoryboard(name: "Main", bundle: nil) // Replace "Main" with your actual storyboard name
+        guard let canvasVC = storyboard.instantiateViewController(withIdentifier: "BCAINewCanvasViewController") as? BCAINewCanvasViewController else {
+            showAlert(message: "Canvas view controller not found")
+            return
+        }
+        
+        // Pass current stickers data to the canvas VC
+        canvasVC.stickerManager = stickerManager
+        
+        // Set delegate to receive updates when canvas changes
+        canvasVC.delegate = self
+        
+        // Present the view controller
+        canvasVC.modalPresentationStyle = .fullScreen
+        present(canvasVC, animated: true)
+    }
     
+//    private func clearCanvas() {
+//        stickerManager.allStickers.forEach {
+//            $0.layer?.removeAllAnimations()
+//            $0.layer?.removeFromSuperlayer()
+//        }
+//    }
+}
+
+// MARK: - BCAINewCanvasViewControllerDelegate Implementation
+extension ViewController: BCAINewCanvasViewControllerDelegate {
+    func didDismissNewCanvasVC(canvasModel: BCAICanvasStateModel) {
+        // Handle any updates when returning from canvas VC
+        // You might want to update sticker positions based on canvas changes
+        updateStickersForCanvasModel(canvasModel)
+    }
+    
+    private func updateStickersForCanvasModel(_ canvasModel: BCAICanvasStateModel) {
+        // Update sticker positions based on canvas model if needed
+        // This depends on what transformations were applied in the canvas VC
+    }
 }
