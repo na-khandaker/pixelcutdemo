@@ -115,8 +115,8 @@ class LineStickerConfiguration: StickerConfiguration {
     var initialEdge: Edge?
     var lineWidth: CGFloat = 12.0
     
-    init(relativePosition: CGPoint, 
-         size: CGSize, 
+    init(relativePosition: CGPoint,
+         size: CGSize,
          color: UIColor,
          isHorizontal: Bool? = nil,
          initialEdge: Edge? = nil,

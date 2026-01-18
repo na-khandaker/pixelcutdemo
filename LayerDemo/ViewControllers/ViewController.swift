@@ -923,7 +923,6 @@ extension ViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "AnimationCollectionViewCell", for: indexPath) as! AnimationCollectionViewCell
         if collectionView == animationCollectionView {
-
             cell.nameLabel.text = AnimationType.allCases[indexPath.row].rawValue
             cell.isSelected = (AnimationType.allCases[indexPath.row] == currentSelectedAnimation)
 
@@ -931,12 +930,16 @@ extension ViewController: UICollectionViewDataSource {
             switch indexPath.item {
             case 0:
                 cell.nameLabel.text = "Animate"
+                cell.nameLabel.textColor = .systemGreen
             case 1:
                 cell.nameLabel.text = "Play"
+                cell.nameLabel.textColor = .systemBlue
             case 2:
                 cell.nameLabel.text = "Resize"
+                cell.nameLabel.textColor = .systemPurple
             case 3:
                 cell.nameLabel.text = "Export"
+                cell.nameLabel.textColor = .systemRed
             default:
                 cell.nameLabel.text = "N?A"
             }
@@ -1111,5 +1114,7 @@ extension ViewController: BCAINewCanvasViewControllerDelegate {
     private func updateStickersForCanvasModel(_ canvasModel: BCAICanvasStateModel) {
         // Update sticker positions based on canvas model if needed
         // This depends on what transformations were applied in the canvas VC
+        
+        
     }
 }

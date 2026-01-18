@@ -26,8 +26,8 @@ class BCAICanvasOriginalCollectionViewCell: UICollectionViewCell {
         originalCanvasView.layer.cornerRadius = 2.0
         originalCanvasView.layer.borderColor = dNavLableColor?.cgColor
         originalCanvasView.layer.borderWidth = 1.5
-
-
+        
+        
     }
     
     
@@ -53,18 +53,18 @@ class BCAICanvasOriginalCollectionViewCell: UICollectionViewCell {
         originalCanvasView.layer.borderColor = dNavLableColor?.cgColor
         originalCanvasImageView.image = UIImage(named: "dOrginalCanvas")
         originalCanvasTitle.textColor = dNavLableColor
-
+        
     }
     
     func originalCanvasConfigure(bounds: CGRect){
         var ratio: CGFloat = 1.0
-
+        
         if(bounds.height > bounds.width){
             ratio = bounds.height / bounds.width
             canvasHeightConstraint.constant = 25 * ratio
             canvasWidthConstraint.constant = 25
-
-
+            
+            
         }else if(bounds.width > bounds.height){
             ratio = bounds.width / bounds.height
             canvasWidthConstraint.constant = 25 * ratio

@@ -57,66 +57,66 @@ class LayerBuilder: LayerBuilderProtocol {
     }
     
     // MARK: - Text Layer Creation
-//    private func createTextLayer(from sticker: TextStickerModel) -> CALayer {
-//        let textLayer = CATextLayer()
-//        
-//        // Configure text properties
-//        textLayer.string = sticker.text
-//        textLayer.font = CTFontCreateWithName((sticker.fontName ?? "Helvetica") as CFString, sticker.fontSize, nil)
-//        textLayer.fontSize = sticker.fontSize
-//        textLayer.foregroundColor = sticker.textColor.cgColor
-//        textLayer.alignmentMode = convertToCATextLayerAlignmentMode(sticker.textAlignment)
-//        textLayer.isWrapped = true
-//        textLayer.contentsScale = UIScreen.main.scale
-//        
-//        // CRITICAL FIX: Clip text to bounds
-//        textLayer.masksToBounds = true
-//        
-//        // Calculate text size to fit within bounds
-//        let textSize = calculateTextSize(for: sticker.text,
-//                                         font: UIFont(name: sticker.fontName ?? "Helvetica", size: sticker.fontSize) ?? UIFont.systemFont(ofSize: sticker.fontSize),
-//                                         maxWidth: sticker.size.width)
-//        
-//        // Adjust frame to ensure text fits
-//        let textFrame = CGRect(x: 0,
-//                              y: (sticker.size.height - textSize.height) / 2,
-//                              width: sticker.size.width,
-//                              height: min(textSize.height, sticker.size.height))
-//        
-//        textLayer.frame = textFrame
-//        
-//        // Apply base properties
-//        let baseLayer = createBaseLayer(from: sticker)
-//        
-//        // Create container layer to hold text and reflection
-//        let containerLayer = CALayer()
-//        containerLayer.frame = baseLayer.bounds
-//        containerLayer.position = baseLayer.position
-//        containerLayer.transform = baseLayer.transform
-//        containerLayer.zPosition = baseLayer.zPosition
-//        containerLayer.opacity = baseLayer.opacity
-//        
-//        // CRITICAL: Also clip container layer
-//        containerLayer.masksToBounds = true
-//        
-//        if let color = sticker.color {
-//            containerLayer.backgroundColor = color.cgColor
-//        }
-//        
-//        // Add text layer to container
-//        containerLayer.addSublayer(textLayer)
-//        
-//        // Add reflection if needed
-//        if sticker.hasReflection {
-//            addReflectionLayer(to: containerLayer, sticker: sticker)
-//        }
-//        
-//        // Store references
-//        sticker.layer = containerLayer
-//        sticker.reflectionLayer = containerLayer.sublayers?.last
-//        
-//        return containerLayer
-//    }
+    //    private func createTextLayer(from sticker: TextStickerModel) -> CALayer {
+    //        let textLayer = CATextLayer()
+    //
+    //        // Configure text properties
+    //        textLayer.string = sticker.text
+    //        textLayer.font = CTFontCreateWithName((sticker.fontName ?? "Helvetica") as CFString, sticker.fontSize, nil)
+    //        textLayer.fontSize = sticker.fontSize
+    //        textLayer.foregroundColor = sticker.textColor.cgColor
+    //        textLayer.alignmentMode = convertToCATextLayerAlignmentMode(sticker.textAlignment)
+    //        textLayer.isWrapped = true
+    //        textLayer.contentsScale = UIScreen.main.scale
+    //
+    //        // CRITICAL FIX: Clip text to bounds
+    //        textLayer.masksToBounds = true
+    //
+    //        // Calculate text size to fit within bounds
+    //        let textSize = calculateTextSize(for: sticker.text,
+    //                                         font: UIFont(name: sticker.fontName ?? "Helvetica", size: sticker.fontSize) ?? UIFont.systemFont(ofSize: sticker.fontSize),
+    //                                         maxWidth: sticker.size.width)
+    //
+    //        // Adjust frame to ensure text fits
+    //        let textFrame = CGRect(x: 0,
+    //                              y: (sticker.size.height - textSize.height) / 2,
+    //                              width: sticker.size.width,
+    //                              height: min(textSize.height, sticker.size.height))
+    //
+    //        textLayer.frame = textFrame
+    //
+    //        // Apply base properties
+    //        let baseLayer = createBaseLayer(from: sticker)
+    //
+    //        // Create container layer to hold text and reflection
+    //        let containerLayer = CALayer()
+    //        containerLayer.frame = baseLayer.bounds
+    //        containerLayer.position = baseLayer.position
+    //        containerLayer.transform = baseLayer.transform
+    //        containerLayer.zPosition = baseLayer.zPosition
+    //        containerLayer.opacity = baseLayer.opacity
+    //
+    //        // CRITICAL: Also clip container layer
+    //        containerLayer.masksToBounds = true
+    //
+    //        if let color = sticker.color {
+    //            containerLayer.backgroundColor = color.cgColor
+    //        }
+    //
+    //        // Add text layer to container
+    //        containerLayer.addSublayer(textLayer)
+    //
+    //        // Add reflection if needed
+    //        if sticker.hasReflection {
+    //            addReflectionLayer(to: containerLayer, sticker: sticker)
+    //        }
+    //
+    //        // Store references
+    //        sticker.layer = containerLayer
+    //        sticker.reflectionLayer = containerLayer.sublayers?.last
+    //
+    //        return containerLayer
+    //    }
     
     private func calculateTextSize(for text: String, font: UIFont, maxWidth: CGFloat) -> CGSize {
         let constraintRect = CGSize(width: maxWidth, height: .greatestFiniteMagnitude)
@@ -129,114 +129,114 @@ class LayerBuilder: LayerBuilderProtocol {
     }
     
     // MARK: - Reflection Layer
-//    private func addReflectionLayer(to containerLayer: CALayer, sticker: StickerModel) {
-//        guard let originalLayer = containerLayer.sublayers?.first else { return }
-//        
-//        // Create reflection layer
-//        let reflectionLayer = CALayer()
-//        reflectionLayer.contents = originalLayer.contents
-//        reflectionLayer.frame = originalLayer.frame
-//        reflectionLayer.contentsScale = originalLayer.contentsScale
-//        reflectionLayer.transform = CATransform3DMakeScale(1, -1, 1)
-//        reflectionLayer.opacity = 0.3
-//        
-//        // Position reflection below original
-//        let reflectionHeight = containerLayer.bounds.height * 0.3
-//        reflectionLayer.frame.origin.y = containerLayer.bounds.height
-//        
-//        // Create gradient mask for fade effect
-//        let gradientMask = CAGradientLayer()
-//        gradientMask.frame = CGRect(x: 0, y: 0,
-//                                   width: reflectionLayer.bounds.width,
-//                                   height: reflectionHeight)
-//        gradientMask.colors = [
-//            UIColor.white.withAlphaComponent(0.5).cgColor,
-//            UIColor.white.withAlphaComponent(0.0).cgColor
-//        ]
-//        gradientMask.locations = [0.0, 1.0]
-//        gradientMask.startPoint = CGPoint(x: 0.5, y: 0.0)
-//        gradientMask.endPoint = CGPoint(x: 0.5, y: 1.0)
-//        
-//        reflectionLayer.mask = gradientMask
-//        containerLayer.addSublayer(reflectionLayer)
-//    }
+    //    private func addReflectionLayer(to containerLayer: CALayer, sticker: StickerModel) {
+    //        guard let originalLayer = containerLayer.sublayers?.first else { return }
+    //
+    //        // Create reflection layer
+    //        let reflectionLayer = CALayer()
+    //        reflectionLayer.contents = originalLayer.contents
+    //        reflectionLayer.frame = originalLayer.frame
+    //        reflectionLayer.contentsScale = originalLayer.contentsScale
+    //        reflectionLayer.transform = CATransform3DMakeScale(1, -1, 1)
+    //        reflectionLayer.opacity = 0.3
+    //
+    //        // Position reflection below original
+    //        let reflectionHeight = containerLayer.bounds.height * 0.3
+    //        reflectionLayer.frame.origin.y = containerLayer.bounds.height
+    //
+    //        // Create gradient mask for fade effect
+    //        let gradientMask = CAGradientLayer()
+    //        gradientMask.frame = CGRect(x: 0, y: 0,
+    //                                   width: reflectionLayer.bounds.width,
+    //                                   height: reflectionHeight)
+    //        gradientMask.colors = [
+    //            UIColor.white.withAlphaComponent(0.5).cgColor,
+    //            UIColor.white.withAlphaComponent(0.0).cgColor
+    //        ]
+    //        gradientMask.locations = [0.0, 1.0]
+    //        gradientMask.startPoint = CGPoint(x: 0.5, y: 0.0)
+    //        gradientMask.endPoint = CGPoint(x: 0.5, y: 1.0)
+    //
+    //        reflectionLayer.mask = gradientMask
+    //        containerLayer.addSublayer(reflectionLayer)
+    //    }
     
     // MARK: - Image Layer Creation
-//    private func createImageLayer(from sticker: ImageStickerModel) -> CALayer {
-//        let imageLayer = CALayer()
-//        
-//        // Configure image
-//        imageLayer.contents = sticker.image.cgImage
-//        imageLayer.contentsGravity = .resizeAspectFill
-//        imageLayer.masksToBounds = true
-//        
-//        // Apply base properties
-//        let baseLayer = createBaseLayer(from: sticker)
-//        imageLayer.frame = baseLayer.bounds
-//        imageLayer.position = baseLayer.position
-//        imageLayer.transform = baseLayer.transform
-//        imageLayer.zPosition = baseLayer.zPosition
-//        imageLayer.opacity = baseLayer.opacity
-//        
-//        // Add reflection if needed
-//        if sticker.hasReflection {
-//            let containerLayer = CALayer()
-//            containerLayer.frame = baseLayer.bounds
-//            containerLayer.position = baseLayer.position
-//            containerLayer.transform = baseLayer.transform
-//            containerLayer.zPosition = baseLayer.zPosition
-//            
-//            containerLayer.addSublayer(imageLayer)
-//            addReflectionLayer(to: containerLayer, sticker: sticker)
-//            
-//            sticker.layer = containerLayer
-//            sticker.reflectionLayer = containerLayer.sublayers?.last
-//            return containerLayer
-//        }
-//        
-//        sticker.layer = imageLayer
-//        return imageLayer
-//    }
+    //    private func createImageLayer(from sticker: ImageStickerModel) -> CALayer {
+    //        let imageLayer = CALayer()
+    //
+    //        // Configure image
+    //        imageLayer.contents = sticker.image.cgImage
+    //        imageLayer.contentsGravity = .resizeAspectFill
+    //        imageLayer.masksToBounds = true
+    //
+    //        // Apply base properties
+    //        let baseLayer = createBaseLayer(from: sticker)
+    //        imageLayer.frame = baseLayer.bounds
+    //        imageLayer.position = baseLayer.position
+    //        imageLayer.transform = baseLayer.transform
+    //        imageLayer.zPosition = baseLayer.zPosition
+    //        imageLayer.opacity = baseLayer.opacity
+    //
+    //        // Add reflection if needed
+    //        if sticker.hasReflection {
+    //            let containerLayer = CALayer()
+    //            containerLayer.frame = baseLayer.bounds
+    //            containerLayer.position = baseLayer.position
+    //            containerLayer.transform = baseLayer.transform
+    //            containerLayer.zPosition = baseLayer.zPosition
+    //
+    //            containerLayer.addSublayer(imageLayer)
+    //            addReflectionLayer(to: containerLayer, sticker: sticker)
+    //
+    //            sticker.layer = containerLayer
+    //            sticker.reflectionLayer = containerLayer.sublayers?.last
+    //            return containerLayer
+    //        }
+    //
+    //        sticker.layer = imageLayer
+    //        return imageLayer
+    //    }
     
     // MARK: - Shape Layer Creation
-//    private func createShapeLayer(from sticker: ShapeStickerModel) -> CALayer {
-//        let shapeLayer = CALayer()
-//        
-//        // Configure shape
-//        shapeLayer.cornerRadius = sticker.cornerRadius
-//        
-//        if sticker.shapeType == .circle {
-//            shapeLayer.cornerRadius = min(sticker.size.width, sticker.size.height) / 2
-//        }
-//        
-//        // Apply base properties
-//        let baseLayer = createBaseLayer(from: sticker)
-//        shapeLayer.frame = baseLayer.bounds
-//        shapeLayer.position = baseLayer.position
-//        shapeLayer.transform = baseLayer.transform
-//        shapeLayer.zPosition = baseLayer.zPosition
-//        shapeLayer.opacity = baseLayer.opacity
-//        shapeLayer.backgroundColor = sticker.color?.cgColor
-//        
-//        // Add reflection if needed
-//        if sticker.hasReflection {
-//            let containerLayer = CALayer()
-//            containerLayer.frame = baseLayer.bounds
-//            containerLayer.position = baseLayer.position
-//            containerLayer.transform = baseLayer.transform
-//            containerLayer.zPosition = baseLayer.zPosition
-//            
-//            containerLayer.addSublayer(shapeLayer)
-//            addReflectionLayer(to: containerLayer, sticker: sticker)
-//            
-//            sticker.layer = containerLayer
-//            sticker.reflectionLayer = containerLayer.sublayers?.last
-//            return containerLayer
-//        }
-//        
-//        sticker.layer = shapeLayer
-//        return shapeLayer
-//    }
+    //    private func createShapeLayer(from sticker: ShapeStickerModel) -> CALayer {
+    //        let shapeLayer = CALayer()
+    //
+    //        // Configure shape
+    //        shapeLayer.cornerRadius = sticker.cornerRadius
+    //
+    //        if sticker.shapeType == .circle {
+    //            shapeLayer.cornerRadius = min(sticker.size.width, sticker.size.height) / 2
+    //        }
+    //
+    //        // Apply base properties
+    //        let baseLayer = createBaseLayer(from: sticker)
+    //        shapeLayer.frame = baseLayer.bounds
+    //        shapeLayer.position = baseLayer.position
+    //        shapeLayer.transform = baseLayer.transform
+    //        shapeLayer.zPosition = baseLayer.zPosition
+    //        shapeLayer.opacity = baseLayer.opacity
+    //        shapeLayer.backgroundColor = sticker.color?.cgColor
+    //
+    //        // Add reflection if needed
+    //        if sticker.hasReflection {
+    //            let containerLayer = CALayer()
+    //            containerLayer.frame = baseLayer.bounds
+    //            containerLayer.position = baseLayer.position
+    //            containerLayer.transform = baseLayer.transform
+    //            containerLayer.zPosition = baseLayer.zPosition
+    //
+    //            containerLayer.addSublayer(shapeLayer)
+    //            addReflectionLayer(to: containerLayer, sticker: sticker)
+    //
+    //            sticker.layer = containerLayer
+    //            sticker.reflectionLayer = containerLayer.sublayers?.last
+    //            return containerLayer
+    //        }
+    //
+    //        sticker.layer = shapeLayer
+    //        return shapeLayer
+    //    }
     
     // MARK: - Line Layer Creation
     private func createLineLayer(from sticker: LineStickerModel) -> CALayer {
@@ -288,20 +288,20 @@ class LayerBuilder: LayerBuilderProtocol {
     }
     
     // MARK: - Animation Methods
-//    func applyAnimation(to layer: CALayer, animationType: AnimationType, duration: TimeInterval) {
-//        switch animationType {
-//        case .RevealUp, .RevealDown, .RevealLeft, .RevealRight:
-//            applyRevealAnimation(to: layer, type: animationType, duration: duration)
-//        case .DriftUp, .DriftDown, .DriftLeft, .DriftRight:
-//            applyDriftAnimation(to: layer, type: animationType, duration: duration)
-//        case .Fade:
-//            applyFadeAnimation(to: layer, duration: duration)
-//        case .Scale:
-//            applyScaleAnimation(to: layer, duration: duration)
-//        default:
-//            break
-//        }
-//    }
+    //    func applyAnimation(to layer: CALayer, animationType: AnimationType, duration: TimeInterval) {
+    //        switch animationType {
+    //        case .RevealUp, .RevealDown, .RevealLeft, .RevealRight:
+    //            applyRevealAnimation(to: layer, type: animationType, duration: duration)
+    //        case .DriftUp, .DriftDown, .DriftLeft, .DriftRight:
+    //            applyDriftAnimation(to: layer, type: animationType, duration: duration)
+    //        case .Fade:
+    //            applyFadeAnimation(to: layer, duration: duration)
+    //        case .Scale:
+    //            applyScaleAnimation(to: layer, duration: duration)
+    //        default:
+    //            break
+    //        }
+    //    }
     
     private func applyRevealAnimation(to layer: CALayer, type: AnimationType, duration: TimeInterval) {
         guard let maskLayer = createMaskLayer(for: type, size: layer.bounds.size) else { return }
@@ -488,9 +488,9 @@ extension LayerBuilder {
         
         // Adjust frame to ensure text fits
         let textFrame = CGRect(x: 0,
-                              y: (sticker.size.height - textSize.height) / 2,
-                              width: sticker.size.width,
-                              height: min(textSize.height, sticker.size.height))
+                               y: (sticker.size.height - textSize.height) / 2,
+                               width: sticker.size.width,
+                               height: min(textSize.height, sticker.size.height))
         
         textLayer.frame = textFrame
         
@@ -520,7 +520,7 @@ extension LayerBuilder {
         
         return containerLayer
     }
-
+    
     // MARK: - Image Layer Creation (CORRECTED)
     private func createImageLayer(from sticker: ImageStickerModel) -> CALayer {
         let imageLayer = CALayer()
@@ -551,7 +551,7 @@ extension LayerBuilder {
         
         return containerLayer
     }
-
+    
     // MARK: - Shape Layer Creation (CORRECTED)
     private func createShapeLayer(from sticker: ShapeStickerModel) -> CALayer {
         let shapeLayer = CALayer()
@@ -622,7 +622,7 @@ extension LayerBuilder {
                 animationType = .RevealDown
             case .RevealDown:
                 animationType = .RevealUp
-            // For left/right reveals, keep the same direction
+                // For left/right reveals, keep the same direction
             default:
                 break
             }
@@ -669,17 +669,17 @@ extension LayerBuilder {
         layer.add(animation, forKey: "driftAnimation")
     }
     
-//    private func applyFadeAnimation(to layer: CALayer, duration: TimeInterval) {
-//        let animation = CABasicAnimation(keyPath: "opacity")
-//        animation.fromValue = 0.0
-//        animation.toValue = layer.opacity // Use the layer's current opacity
-//        animation.duration = duration
-//        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-//        animation.fillMode = .forwards
-//        animation.isRemovedOnCompletion = false
-//        
-//        layer.add(animation, forKey: "fadeAnimation")
-//    }
+    //    private func applyFadeAnimation(to layer: CALayer, duration: TimeInterval) {
+    //        let animation = CABasicAnimation(keyPath: "opacity")
+    //        animation.fromValue = 0.0
+    //        animation.toValue = layer.opacity // Use the layer's current opacity
+    //        animation.duration = duration
+    //        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+    //        animation.fillMode = .forwards
+    //        animation.isRemovedOnCompletion = false
+    //
+    //        layer.add(animation, forKey: "fadeAnimation")
+    //    }
     
     private func applyScaleAnimation(to layer: CALayer, duration: TimeInterval, isReflectionLayer: Bool = false) {
         let animation = CABasicAnimation(keyPath: "transform.scale")
@@ -709,12 +709,12 @@ extension CGPoint {
     
     func relativePosition(for canvasSize: CGSize) -> CGPoint {
         guard canvasSize.width != 0, canvasSize.height != 0 else {
-                   return .zero
-               }
-               
-               return CGPoint(
-                   x: self.x / canvasSize.width,
-                   y: self.y / canvasSize.height
-               )
+            return .zero
+        }
+        
+        return CGPoint(
+            x: self.x / canvasSize.width,
+            y: self.y / canvasSize.height
+        )
     }
 }

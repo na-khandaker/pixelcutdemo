@@ -152,8 +152,8 @@ class LineStickerModel: StickerModel {
          zIndex: Int = 0,
          hasReflection: Bool = false,
          opacity: Float = 1.0) {
-        self.lineWidth = lineWidth
         
+        self.lineWidth = lineWidth
         super.init(id: id,
                    type: .line,
                    relativePosition: relativePosition,

@@ -336,8 +336,8 @@ class VideoManager {
         // Create gradient mask for fade effect
         let gradientMask = CAGradientLayer()
         gradientMask.frame = CGRect(x: 0, y: 0,
-                                   width: reflectionLayer.bounds.width,
-                                   height: reflectionHeight)
+                                    width: reflectionLayer.bounds.width,
+                                    height: reflectionHeight)
         gradientMask.colors = [
             UIColor.white.withAlphaComponent(0.5).cgColor,
             UIColor.white.withAlphaComponent(0.0).cgColor

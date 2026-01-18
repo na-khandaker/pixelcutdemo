@@ -35,7 +35,7 @@ class BACAIPlistManager{
             throw error
         }
     }
-
+    
 }
 
 struct BCAICanvasStateModel{
@@ -69,11 +69,10 @@ struct BCAICanvasStateModel{
     }
     
     
-    init(){
+    init() {
         isDiffrent = false
         isOrginal = true
         lastSelectedIndex = 0
         filterTransfromScale = 1.0
     }
-    
 }
