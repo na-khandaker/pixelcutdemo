@@ -9,6 +9,9 @@ import MobileCoreServices
 
 class ViewController: UIViewController {
     
+    
+    @IBOutlet weak var canvasAspectRatioConstraint: NSLayoutConstraint!
+    
     // MARK: - Properties
     private var currentSelectedAnimation: AnimationType = .RevealRight
     private var stickerManager = StickerManager()
@@ -52,6 +55,13 @@ class ViewController: UIViewController {
 //        }
         //createInitialStickers()
         animateAllStickers()
+        
+//        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+//            //self.updateAspectRatio(to: 9, height: 16)
+//            self.changeAspectRatio(to: 16/9)
+//            playTapped(UIButton())
+//            
+//        }
     }
     
     private func setupGestures() {
@@ -1101,6 +1111,35 @@ extension ViewController {
 //            $0.layer?.removeFromSuperlayer()
 //        }
 //    }
+    
+//    func updateAspectRatio(to width: CGFloat, height: CGFloat) {
+//        guard let oldConstraint = canvasAspectRatioConstraint else { return }
+//        
+//        // Remove the old constraint
+//        canvasAspectRatioConstraint.isActive = false
+//        canvasAspectRatioConstraint = nil
+//        
+//        // Create new constraint with the desired aspect ratio
+//        let newMultiplier = width / height
+//        let newConstraint = NSLayoutConstraint(
+//            item: oldConstraint.firstItem as Any,
+//            attribute: .width,
+//            relatedBy: .equal,
+//            toItem: oldConstraint.secondItem,
+//            attribute: .height,
+//            multiplier: newMultiplier,
+//            constant: 0
+//        )
+//        
+//        newConstraint.priority = oldConstraint.priority
+//        newConstraint.identifier = oldConstraint.identifier
+//        
+//        // Add and activate the new constraint
+//        newConstraint.isActive = true
+//        canvasAspectRatioConstraint = newConstraint
+//        view.layoutIfNeeded()
+//    }
+
 }
 
 // MARK: - BCAINewCanvasViewControllerDelegate Implementation
@@ -1109,12 +1148,46 @@ extension ViewController: BCAINewCanvasViewControllerDelegate {
         // Handle any updates when returning from canvas VC
         // You might want to update sticker positions based on canvas changes
         updateStickersForCanvasModel(canvasModel)
+        print("Canvas Model ",canvasModel)
+        
+        DispatchQueue.main.async {
+            self.changeAspectRatio(to: (canvasModel.currentRatioH ?? 1) / (canvasModel.currentRatioW ?? 1) )
+            self.playTapped(UIButton())
+        }
     }
     
     private func updateStickersForCanvasModel(_ canvasModel: BCAICanvasStateModel) {
         // Update sticker positions based on canvas model if needed
         // This depends on what transformations were applied in the canvas VC
-        
-        
+        print("Canvas Model ",canvasModel)
+    }
+    
+    func changeAspectRatio(to newMultiplier: CGFloat) {
+        // Deactivate the old constraint
+        NSLayoutConstraint.deactivate([canvasAspectRatioConstraint])
+
+        // Create a new constraint with the new multiplier
+        let newConstraint = NSLayoutConstraint(
+            item: canvasView,
+            attribute: .height, // or .width
+            relatedBy: .equal,
+            toItem: canvasView,
+            attribute: .width, // or .height
+            multiplier: newMultiplier,
+            constant: 0
+        )
+
+        // Activate the new constraint
+        NSLayoutConstraint.activate([newConstraint])
+
+        // Update the reference
+        canvasAspectRatioConstraint = newConstraint
+
+        // Animate the layout change (optional)
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
     }
 }
+
+
