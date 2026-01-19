@@ -471,6 +471,7 @@ extension LayerBuilder {
     // MARK: - Text Layer Creation (CORRECTED)
     private func createTextLayer(from sticker: TextStickerModel) -> CALayer {
         let textLayer = CATextLayer()
+        textLayer.masksToBounds = false 
         
         // Configure text properties
         textLayer.string = sticker.text

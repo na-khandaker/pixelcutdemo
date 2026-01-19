@@ -11,7 +11,7 @@ import AVFoundation
 class VideoManager {
     
     // MARK: - Properties
-    private let DURATION: TimeInterval = 1.2 // Match your animation duration
+    private let DURATION: TimeInterval = 1.2
     private var exportCanvasSize: CGSize = .zero
     
     // MARK: - Public Methods
@@ -66,7 +66,6 @@ class VideoManager {
     }
     
     // MARK: - Private Methods
-    
     private func createRepeatedVideoComposition(
         from videoURL: URL,
         targetDuration: TimeInterval
@@ -166,6 +165,7 @@ class VideoManager {
             currentAnimation: currentAnimation,
             videoSize: videoSize
         )
+        overlayLayer.isGeometryFlipped = true
         
         // Create parent layer that combines video and overlay
         let parentLayer = CALayer()
@@ -249,12 +249,22 @@ class VideoManager {
         }
         
         // Scale position and size for video
+//        layer.frame = CGRect(
+//            x: originalFrame.origin.x * scaleX,
+//            y: originalFrame.origin.y * scaleY,
+//            width: originalFrame.width * scaleX,
+//            height: originalFrame.height * scaleY
+//        )
+        let scaleX = videoSize.width / exportCanvasSize.width//canvasView.bounds.width
+        let scaleY = videoSize.height / exportCanvasSize.height//canvasView.bounds.height
+
         layer.frame = CGRect(
             x: originalFrame.origin.x * scaleX,
             y: originalFrame.origin.y * scaleY,
             width: originalFrame.width * scaleX,
             height: originalFrame.height * scaleY
         )
+
         
         // Apply rotation and scale from sticker
         layer.transform = CATransform3DMakeRotation(sticker.rotation, 0, 0, 1)
