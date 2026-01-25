@@ -209,48 +209,139 @@ class ViewController: UIViewController {
     }
     
     // MARK: Reflection Layer
+//    private func createReflectionLayer(for mainLayer: CALayer) -> CALayer {
+//        let reflectionLayer = CALayer()
+//        
+//        // Check if main layer contains a CATextLayer
+//        if let textLayer = mainLayer.sublayers?.first as? CATextLayer {
+//            // Handle text layer reflection
+////            let textReflectionLayer = CATextLayer()
+////            textReflectionLayer.string = textLayer.string
+////            textReflectionLayer.font = textLayer.font
+////            textReflectionLayer.fontSize = textLayer.fontSize
+////            textReflectionLayer.foregroundColor = textLayer.foregroundColor
+////            textReflectionLayer.alignmentMode = textLayer.alignmentMode
+////            textReflectionLayer.isWrapped = textLayer.isWrapped
+////            textReflectionLayer.contentsScale = textLayer.contentsScale
+////            textReflectionLayer.frame = textLayer.frame
+//            
+//            // Apply container background if exists
+////            reflectionLayer.backgroundColor = mainLayer.backgroundColor
+////            reflectionLayer.cornerRadius = mainLayer.cornerRadius
+////            
+////            reflectionLayer.addSublayer(textReflectionLayer)
+//            mainLayer.layoutIfNeeded()
+//
+//            let renderedImage = mainLayer.renderedImage()
+//            reflectionLayer.contents = renderedImage.cgImage
+//            reflectionLayer.contentsScale = UIScreen.main.scale
+//            reflectionLayer.frame = mainLayer.bounds
+//
+//            
+//            textLayer.mask = nil
+//            textLayer.masksToBounds = false
+//            textLayer.layoutIfNeeded()
+//           // let renderedImage = textLayer.renderedImage()
+//           // reflectionLayer.contents = renderedImage.cgImage
+//            //reflectionLayer.contentsScale = textLayer.contentsScale
+//            reflectionLayer.contentsGravity = textLayer.contentsGravity
+//            reflectionLayer.cornerRadius = textLayer.cornerRadius
+//            reflectionLayer.masksToBounds = textLayer.masksToBounds
+//            reflectionLayer.backgroundColor = textLayer.backgroundColor
+//            reflectionLayer.frame = mainLayer.bounds
+//
+//            
+//        } else if let firstSublayer = mainLayer.sublayers?.first {
+//            // Handle image/shape layer reflection
+//            reflectionLayer.contents = firstSublayer.contents
+//            reflectionLayer.contentsScale = firstSublayer.contentsScale
+//            reflectionLayer.contentsGravity = firstSublayer.contentsGravity
+//            reflectionLayer.cornerRadius = firstSublayer.cornerRadius
+//            reflectionLayer.masksToBounds = firstSublayer.masksToBounds
+//            reflectionLayer.backgroundColor = firstSublayer.backgroundColor
+//            reflectionLayer.frame = firstSublayer.frame
+//        } else {
+//            // Fallback to main layer properties
+//            reflectionLayer.frame = mainLayer.bounds
+//            reflectionLayer.backgroundColor = mainLayer.backgroundColor
+//            reflectionLayer.cornerRadius = mainLayer.cornerRadius
+//        }
+//        
+//        // Position reflection below the main layer
+//        let mainPosition = mainLayer.position
+//        let mainHeight = mainLayer.bounds.height
+//        reflectionLayer.position = CGPoint(
+//            x: mainPosition.x,
+//            y: mainPosition.y + mainHeight
+//        )
+//
+//        //apply reflection rotation
+//        let mainTransform = mainLayer.transform
+//        let rotationAngle = atan2(mainTransform.m12, mainTransform.m11)
+//        var reflectionTransform = CATransform3DIdentity
+//        reflectionTransform = CATransform3DRotate(reflectionTransform, CGFloat(-rotationAngle), 0, 0, 1)
+//        reflectionTransform = CATransform3DScale(reflectionTransform, 1, -1, 1)
+//        //reflectionLayer.transform = reflectionTransform
+//        // Apply scale if any from main transform
+//        let scaleX = sqrt(mainTransform.m11 * mainTransform.m11 + mainTransform.m12 * mainTransform.m12)
+//        let scaleY = sqrt(mainTransform.m21 * mainTransform.m21 + mainTransform.m22 * mainTransform.m22)
+//        reflectionTransform = CATransform3DScale(reflectionTransform, scaleX, scaleY, 1)
+//        reflectionLayer.transform = reflectionTransform
+//        
+//
+//        reflectionLayer.opacity = 1
+//        reflectionLayer.name = "reflection_layer"
+//        reflectionLayer.zPosition = mainLayer.zPosition - 1
+//        
+//        // Add gradient mask for fade-out effect
+////        let gradientMask = CAGradientLayer()
+////        gradientMask.frame = reflectionLayer.bounds
+////        gradientMask.colors = [
+////            UIColor.blue.withAlphaComponent(0).cgColor,
+////            UIColor.blue.withAlphaComponent(1).cgColor
+////        ]
+////        gradientMask.locations = [0.0, 1.0]
+////        gradientMask.startPoint = CGPoint(x: 0.5, y: 0.0)
+////        gradientMask.endPoint = CGPoint(x: 0.5, y: 1.0)
+////        
+////        reflectionLayer.mask = gradientMask
+//        
+//        let gradientMask = CAGradientLayer()
+//        gradientMask.frame = reflectionLayer.bounds
+//        gradientMask.colors = [
+//            UIColor.black.withAlphaComponent(0.6).cgColor,
+//            UIColor.black.withAlphaComponent(0.0).cgColor
+//        ]
+//        gradientMask.locations = [0.0, 1.0]
+//
+//        // IMPORTANT: reversed because reflection is flipped
+//        gradientMask.startPoint = CGPoint(x: 0.5, y: 1.0)
+//        gradientMask.endPoint = CGPoint(x: 0.5, y: 0.0)
+//        reflectionLayer.mask = gradientMask
+//
+//        
+//        return reflectionLayer
+//    }
+    
     private func createReflectionLayer(for mainLayer: CALayer) -> CALayer {
         let reflectionLayer = CALayer()
         
         // Check if main layer contains a CATextLayer
         if let textLayer = mainLayer.sublayers?.first as? CATextLayer {
-            // Handle text layer reflection
-//            let textReflectionLayer = CATextLayer()
-//            textReflectionLayer.string = textLayer.string
-//            textReflectionLayer.font = textLayer.font
-//            textReflectionLayer.fontSize = textLayer.fontSize
-//            textReflectionLayer.foregroundColor = textLayer.foregroundColor
-//            textReflectionLayer.alignmentMode = textLayer.alignmentMode
-//            textReflectionLayer.isWrapped = textLayer.isWrapped
-//            textReflectionLayer.contentsScale = textLayer.contentsScale
-//            textReflectionLayer.frame = textLayer.frame
-            
-            // Apply container background if exists
-//            reflectionLayer.backgroundColor = mainLayer.backgroundColor
-//            reflectionLayer.cornerRadius = mainLayer.cornerRadius
-//            
-//            reflectionLayer.addSublayer(textReflectionLayer)
             mainLayer.layoutIfNeeded()
-
             let renderedImage = mainLayer.renderedImage()
             reflectionLayer.contents = renderedImage.cgImage
             reflectionLayer.contentsScale = UIScreen.main.scale
             reflectionLayer.frame = mainLayer.bounds
-
             
             textLayer.mask = nil
             textLayer.masksToBounds = false
             textLayer.layoutIfNeeded()
-           // let renderedImage = textLayer.renderedImage()
-           // reflectionLayer.contents = renderedImage.cgImage
-            //reflectionLayer.contentsScale = textLayer.contentsScale
             reflectionLayer.contentsGravity = textLayer.contentsGravity
             reflectionLayer.cornerRadius = textLayer.cornerRadius
             reflectionLayer.masksToBounds = textLayer.masksToBounds
             reflectionLayer.backgroundColor = textLayer.backgroundColor
             reflectionLayer.frame = mainLayer.bounds
-
-            
         } else if let firstSublayer = mainLayer.sublayers?.first {
             // Handle image/shape layer reflection
             reflectionLayer.contents = firstSublayer.contents
@@ -267,40 +358,34 @@ class ViewController: UIViewController {
             reflectionLayer.cornerRadius = mainLayer.cornerRadius
         }
         
-        // Position reflection below the main layer
-        let mainPosition = mainLayer.position
-        let mainHeight = mainLayer.bounds.height
+        // Position reflection below the main layer with TOP of reflection at BOTTOM of main
+        let mainFrame = mainLayer.frame
+        let reflectionHeight = mainLayer.bounds.height
+        
+        // Calculate new position: center Y = bottom of main + half of reflection height
         reflectionLayer.position = CGPoint(
-            x: mainPosition.x,
-            y: mainPosition.y + mainHeight
+            x: mainFrame.midX,
+            y: mainFrame.maxY + (reflectionHeight / 2)
         )
 
-        //apply reflection rotation
+        // Apply reflection transformation
         let mainTransform = mainLayer.transform
         let rotationAngle = atan2(mainTransform.m12, mainTransform.m11)
         var reflectionTransform = CATransform3DIdentity
         reflectionTransform = CATransform3DRotate(reflectionTransform, CGFloat(-rotationAngle), 0, 0, 1)
         reflectionTransform = CATransform3DScale(reflectionTransform, 1, -1, 1)
-        reflectionLayer.transform = reflectionTransform
         
+        // Apply scale if any from main transform
+        let scaleX = sqrt(mainTransform.m11 * mainTransform.m11 + mainTransform.m12 * mainTransform.m12)
+        let scaleY = sqrt(mainTransform.m21 * mainTransform.m21 + mainTransform.m22 * mainTransform.m22)
+        reflectionTransform = CATransform3DScale(reflectionTransform, scaleX, scaleY, 1)
+        reflectionLayer.transform = reflectionTransform
 
         reflectionLayer.opacity = 1
         reflectionLayer.name = "reflection_layer"
         reflectionLayer.zPosition = mainLayer.zPosition - 1
         
         // Add gradient mask for fade-out effect
-//        let gradientMask = CAGradientLayer()
-//        gradientMask.frame = reflectionLayer.bounds
-//        gradientMask.colors = [
-//            UIColor.blue.withAlphaComponent(0).cgColor,
-//            UIColor.blue.withAlphaComponent(1).cgColor
-//        ]
-//        gradientMask.locations = [0.0, 1.0]
-//        gradientMask.startPoint = CGPoint(x: 0.5, y: 0.0)
-//        gradientMask.endPoint = CGPoint(x: 0.5, y: 1.0)
-//        
-//        reflectionLayer.mask = gradientMask
-        
         let gradientMask = CAGradientLayer()
         gradientMask.frame = reflectionLayer.bounds
         gradientMask.colors = [
@@ -313,11 +398,58 @@ class ViewController: UIViewController {
         gradientMask.startPoint = CGPoint(x: 0.5, y: 1.0)
         gradientMask.endPoint = CGPoint(x: 0.5, y: 0.0)
         reflectionLayer.mask = gradientMask
-
         
         return reflectionLayer
     }
 
+//    private func updateReflectionForSticker(_ sticker: StickerModel) {
+//        guard let mainLayer = sticker.layer,
+//              let reflectionLayer = sticker.reflectionLayer else {
+//            return
+//        }
+//        
+//        // Update position to stay below main layer
+//        let mainPosition = mainLayer.position
+//        let mainHeight = mainLayer.bounds.height
+//        reflectionLayer.position = CGPoint(x: mainPosition.x, y: mainPosition.y + mainHeight)
+//
+//        let mainTransform = mainLayer.transform
+//        let rotationAngle = atan2(mainTransform.m12, mainTransform.m11)
+//        var reflectionTransform = CATransform3DIdentity
+//        reflectionTransform = CATransform3DRotate(reflectionTransform, CGFloat(-rotationAngle), 0, 0, 1)
+//        reflectionTransform = CATransform3DScale(reflectionTransform, 1, -1, 1)
+//        
+//        // Apply scale if any from main transform
+//        let scaleX = sqrt(mainTransform.m11 * mainTransform.m11 + mainTransform.m12 * mainTransform.m12)
+//        let scaleY = sqrt(mainTransform.m21 * mainTransform.m21 + mainTransform.m22 * mainTransform.m22)
+//        reflectionTransform = CATransform3DScale(reflectionTransform, scaleX, scaleY, 1)
+//        reflectionLayer.transform = reflectionTransform
+//
+//        reflectionLayer.opacity = mainLayer.opacity //* 0.75
+//        reflectionLayer.bounds = mainLayer.bounds
+//        reflectionLayer.zPosition = mainLayer.zPosition - 1
+//        
+//        // Update the gradient mask frame
+//        if let gradientMask = reflectionLayer.mask as? CAGradientLayer {
+//            gradientMask.frame = reflectionLayer.bounds
+//        }
+//        
+//        // Special handling for text layer reflection
+////        if let textLayer = mainLayer.sublayers?.first as? CATextLayer,
+////           let textReflectionLayer = reflectionLayer.sublayers?.first as? CATextLayer {
+////            
+////            // Update text properties
+////            textReflectionLayer.string = textLayer.string
+////            textReflectionLayer.fontSize = textLayer.fontSize
+////            textReflectionLayer.foregroundColor = textLayer.foregroundColor
+////            textReflectionLayer.frame = textLayer.frame
+////            
+////            // Update background color
+////            reflectionLayer.backgroundColor = mainLayer.backgroundColor
+////        }
+//        
+//    }
+    
     private func updateReflectionForSticker(_ sticker: StickerModel) {
         guard let mainLayer = sticker.layer,
               let reflectionLayer = sticker.reflectionLayer else {
@@ -325,9 +457,14 @@ class ViewController: UIViewController {
         }
         
         // Update position to stay below main layer
-        let mainPosition = mainLayer.position
-        let mainHeight = mainLayer.bounds.height
-        reflectionLayer.position = CGPoint(x: mainPosition.x, y: mainPosition.y + mainHeight)
+        let mainFrame = mainLayer.frame
+        let reflectionHeight = mainLayer.bounds.height
+        
+        // Calculate new position: center Y = bottom of main + half of reflection height
+        reflectionLayer.position = CGPoint(
+            x: mainFrame.midX,
+            y: mainFrame.maxY + (reflectionHeight / 2)
+        )
 
         let mainTransform = mainLayer.transform
         let rotationAngle = atan2(mainTransform.m12, mainTransform.m11)
@@ -341,7 +478,7 @@ class ViewController: UIViewController {
         reflectionTransform = CATransform3DScale(reflectionTransform, scaleX, scaleY, 1)
         reflectionLayer.transform = reflectionTransform
 
-        reflectionLayer.opacity = mainLayer.opacity //* 0.75
+        reflectionLayer.opacity = mainLayer.opacity
         reflectionLayer.bounds = mainLayer.bounds
         reflectionLayer.zPosition = mainLayer.zPosition - 1
         
@@ -349,21 +486,6 @@ class ViewController: UIViewController {
         if let gradientMask = reflectionLayer.mask as? CAGradientLayer {
             gradientMask.frame = reflectionLayer.bounds
         }
-        
-        // Special handling for text layer reflection
-//        if let textLayer = mainLayer.sublayers?.first as? CATextLayer,
-//           let textReflectionLayer = reflectionLayer.sublayers?.first as? CATextLayer {
-//            
-//            // Update text properties
-//            textReflectionLayer.string = textLayer.string
-//            textReflectionLayer.fontSize = textLayer.fontSize
-//            textReflectionLayer.foregroundColor = textLayer.foregroundColor
-//            textReflectionLayer.frame = textLayer.frame
-//            
-//            // Update background color
-//            reflectionLayer.backgroundColor = mainLayer.backgroundColor
-//        }
-        
     }
     
     private func updateStickerLayer(_ sticker: StickerModel) {
@@ -581,7 +703,7 @@ class ViewController: UIViewController {
         constrainedPosition.x = min(max(position.x, minX), maxX)
         constrainedPosition.y = min(max(position.y, minY), maxY)
         
-        return constrainedPosition
+        return position//constrainedPosition
     }
     
     private func highlightSelectedSticker() {
