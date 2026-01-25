@@ -1,10 +1,3 @@
-//
-//  VideoManager.swift
-//  LayerDemo
-//
-//  Created by BCL Device 5 on 8/1/26.
-//
-
 import UIKit
 import AVFoundation
 
@@ -206,16 +199,12 @@ class VideoManager {
         let overlayLayer = CALayer()
         overlayLayer.frame = CGRect(origin: .zero, size: videoSize)
         
-        let scaleX = videoSize.width / canvasView.bounds.width
-        let scaleY = videoSize.height / canvasView.bounds.height
-        
         // Create layers for each sticker based on the sticker manager
         for sticker in stickerManager.allStickers {
             let videoStickerLayer = createVideoStickerLayer(
                 from: sticker,
                 currentAnimation: currentAnimation,
-                scaleX: scaleX,
-                scaleY: scaleY,
+                canvasView: canvasView,
                 videoSize: videoSize
             )
             overlayLayer.addSublayer(videoStickerLayer)
@@ -227,49 +216,47 @@ class VideoManager {
     private func createVideoStickerLayer(
         from sticker: StickerModel,
         currentAnimation: AnimationType,
-        scaleX: CGFloat,
-        scaleY: CGFloat,
+        canvasView: UIView,
         videoSize: CGSize
     ) -> CALayer {
         let layer = CALayer()
         
-        // Get original layer frame or use sticker position
-        let originalFrame: CGRect
-        if let stickerLayer = sticker.layer {
-            originalFrame = stickerLayer.frame
-        } else {
-            // If no layer, use sticker's position and size
-            let stickerPosition = sticker.relativePosition.absolutePosition(for: exportCanvasSize)
-            originalFrame = CGRect(
-                x: stickerPosition.x - sticker.size.width / 2,
-                y: stickerPosition.y - sticker.size.height / 2,
-                width: sticker.size.width,
-                height: sticker.size.height
-            )
-        }
+        // Calculate scale factors for converting canvas coordinates to video coordinates
+        let canvasToVideoScaleX = videoSize.width / canvasView.bounds.width
+        let canvasToVideoScaleY = videoSize.height / canvasView.bounds.height
         
-        // Scale position and size for video
-//        layer.frame = CGRect(
-//            x: originalFrame.origin.x * scaleX,
-//            y: originalFrame.origin.y * scaleY,
-//            width: originalFrame.width * scaleX,
-//            height: originalFrame.height * scaleY
-//        )
-        let scaleX = videoSize.width / exportCanvasSize.width//canvasView.bounds.width
-        let scaleY = videoSize.height / exportCanvasSize.height//canvasView.bounds.height
-
-        layer.frame = CGRect(
-            x: originalFrame.origin.x * scaleX,
-            y: originalFrame.origin.y * scaleY,
-            width: originalFrame.width * scaleX,
-            height: originalFrame.height * scaleY
-        )
-
+        // Get sticker's absolute position on canvas
+        let stickerAbsolutePosition = sticker.relativePosition.absolutePosition(for: canvasView.bounds.size)
         
-        // Apply rotation and scale from sticker
-        layer.transform = CATransform3DMakeRotation(sticker.rotation, 0, 0, 1)
-        layer.transform = CATransform3DScale(layer.transform, sticker.scale, sticker.scale, 1)
-        layer.opacity = sticker.opacity
+        // Calculate video position (center of the sticker in video coordinates)
+        let videoPositionX = stickerAbsolutePosition.x * canvasToVideoScaleX
+        let videoPositionY = stickerAbsolutePosition.y * canvasToVideoScaleY
+        
+        // Calculate the unscaled size of the sticker (before applying sticker.scale)
+        let unscaledWidth = sticker.size.width
+        let unscaledHeight = sticker.size.height
+        
+        // Set the layer's anchor point to center
+        layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        
+        // Set position (center point)
+        layer.position = CGPoint(x: videoPositionX, y: videoPositionY)
+        
+        // Set bounds with unscaled size
+        layer.bounds = CGRect(x: 0, y: 0, width: unscaledWidth, height: unscaledHeight)
+        
+        // Apply the scale from sticker model (this is the user-applied scale)
+        let stickerScale = sticker.scale
+        var transform = CATransform3DMakeScale(stickerScale, stickerScale, 1)
+        
+        // Apply rotation
+        transform = CATransform3DRotate(transform, sticker.rotation, 0, 0, 1)
+        
+        // Apply the combined transform
+        layer.transform = transform
+        
+        // Apply opacity
+        layer.opacity = Float(sticker.opacity)
         
         // Set content based on sticker type
         switch sticker.type {
@@ -285,12 +272,13 @@ class VideoManager {
                 textLayer.frame = layer.bounds
                 textLayer.contentsScale = UIScreen.main.scale
                 
-                layer.addSublayer(textLayer)
+                // Apply text background if needed
+//                if let bgColor = textSticker.backgroundColor {
+//                    layer.backgroundColor = bgColor.cgColor
+//                    layer.cornerRadius = 8
+//                }
                 
-                // Add reflection if needed
-                if sticker.hasReflection {
-                    addVideoReflectionLayer(to: layer, sticker: sticker)
-                }
+                layer.addSublayer(textLayer)
             }
             
         case .image:
@@ -298,20 +286,48 @@ class VideoManager {
                let cgImage = imageSticker.image.cgImage {
                 layer.contents = cgImage
                 layer.contentsGravity = .resizeAspect
+                layer.masksToBounds = true
                 
-                if sticker.hasReflection {
-                    addVideoReflectionLayer(to: layer, sticker: sticker)
+                // Apply rounded corners if needed
+//                if imageSticker.cornerRadius > 0 {
+//                    layer.cornerRadius = imageSticker.cornerRadius
+//                }
+            }
+            
+        case .shape:
+            if let shapeSticker = sticker as? ShapeStickerModel {
+                //layer.backgroundColor = shapeSticker.color.cgColor
+                layer.masksToBounds = true
+                
+                // Apply shape-specific properties
+                switch shapeSticker.shapeType {
+                case .circle:
+                    layer.cornerRadius = min(layer.bounds.width, layer.bounds.height) / 2
+                case .rectangle:
+                    layer.cornerRadius = shapeSticker.cornerRadius
+//                case .roundedRectangle:
+//                  layer.cornerRadius = shapeSticker.cornerRadius
+                case .roundedRect:
+                    layer.cornerRadius = shapeSticker.cornerRadius
                 }
             }
             
-        case .shape, .line:
-            if let color = sticker.color {
-                layer.backgroundColor = color.cgColor
+        case .line:
+            if let lineSticker = sticker as? LineStickerModel {
+                layer.backgroundColor = lineSticker.color?.cgColor
                 
-                if sticker.hasReflection {
-                    addVideoReflectionLayer(to: layer, sticker: sticker)
+                // For lines, adjust bounds based on orientation
+                if lineSticker.isHorizontal ?? true {
+                    layer.bounds.size.height = lineSticker.lineWidth
+                } else {
+                    layer.bounds.size.width = lineSticker.lineWidth
                 }
             }
+        }
+        
+        // Add reflection if needed
+        if sticker.hasReflection {
+            addVideoReflectionLayer(to: layer, sticker: sticker)
         }
         
         // Apply the correct animation based on sticker type and animation type
@@ -319,7 +335,7 @@ class VideoManager {
             // For lines, apply line growth animation
             applyLineAnimation(to: layer, sticker: sticker, videoSize: videoSize)
         } else {
-            // For images and other stickers, apply the selected animation
+            // For other stickers, apply the selected animation
             applyStickerAnimation(
                 to: layer,
                 animationType: currentAnimation,
@@ -333,23 +349,44 @@ class VideoManager {
     
     private func addVideoReflectionLayer(to layer: CALayer, sticker: StickerModel) {
         let reflectionLayer = CALayer()
-        reflectionLayer.contents = layer.contents
-        reflectionLayer.backgroundColor = layer.backgroundColor
-        reflectionLayer.frame = layer.frame
-        reflectionLayer.transform = CATransform3DMakeScale(1, -1, 1)
-        reflectionLayer.opacity = sticker.opacity * 0.3
         
-        // Position reflection below original
-        let reflectionHeight = layer.bounds.height * 0.3
-        reflectionLayer.frame.origin.y = layer.bounds.height
+        // Copy the main layer's content
+        if let contents = layer.contents {
+            reflectionLayer.contents = contents
+        } else {
+            reflectionLayer.backgroundColor = layer.backgroundColor
+        }
+        
+        // Position reflection below the main layer
+        let reflectionHeight = layer.bounds.height * 0.5
+        
+        reflectionLayer.bounds = CGRect(
+            x: 0,
+            y: 0,
+            width: layer.bounds.width,
+            height: reflectionHeight
+        )
+        
+        // Set anchor point to top
+        reflectionLayer.anchorPoint = CGPoint(x: 0.5, y: 0)
+        
+        // Position at bottom of main layer
+        reflectionLayer.position = CGPoint(
+            x: layer.bounds.width / 2,
+            y: layer.bounds.height
+        )
+        
+        // Apply vertical flip
+        reflectionLayer.transform = CATransform3DMakeScale(1, -1, 1)
+        
+        // Apply opacity
+        reflectionLayer.opacity = Float(sticker.opacity * 0.5)
         
         // Create gradient mask for fade effect
         let gradientMask = CAGradientLayer()
-        gradientMask.frame = CGRect(x: 0, y: 0,
-                                    width: reflectionLayer.bounds.width,
-                                    height: reflectionHeight)
+        gradientMask.frame = reflectionLayer.bounds
         gradientMask.colors = [
-            UIColor.white.withAlphaComponent(0.5).cgColor,
+            UIColor.white.withAlphaComponent(0.8).cgColor,
             UIColor.white.withAlphaComponent(0.0).cgColor
         ]
         gradientMask.locations = [0.0, 1.0]
@@ -361,7 +398,8 @@ class VideoManager {
     }
     
     private func applyLineAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {
-        guard let edge = sticker.initialEdge else { return }
+        guard let lineSticker = sticker as? LineStickerModel,
+              let edge = lineSticker.initialEdge else { return }
         
         let animation = CABasicAnimation()
         
@@ -370,12 +408,12 @@ class VideoManager {
             // Horizontal line growth
             animation.keyPath = "bounds.size.width"
             animation.fromValue = 0
-            animation.toValue = videoSize.width
+            animation.toValue = layer.bounds.width
         case .left, .right:
             // Vertical line growth
             animation.keyPath = "bounds.size.height"
             animation.fromValue = 0
-            animation.toValue = videoSize.height
+            animation.toValue = layer.bounds.height
         }
         
         animation.duration = DURATION
@@ -396,35 +434,34 @@ class VideoManager {
         // Apply different animations based on the animation type
         switch animationType {
         case .RevealUp:
-            applyRevealUpAnimation(to: layer, sticker: sticker, videoSize: videoSize)
+            applyRevealUpAnimation(to: layer, duration: DURATION)
         case .RevealDown:
-            applyRevealDownAnimation(to: layer, sticker: sticker, videoSize: videoSize)
+            applyRevealDownAnimation(to: layer, duration: DURATION)
         case .RevealLeft:
-            applyRevealLeftAnimation(to: layer, sticker: sticker, videoSize: videoSize)
+            applyRevealLeftAnimation(to: layer, duration: DURATION)
         case .RevealRight:
-            applyRevealRightAnimation(to: layer, sticker: sticker, videoSize: videoSize)
+            applyRevealRightAnimation(to: layer, duration: DURATION)
         case .DriftUp:
-            applyDriftUpAnimation(to: layer, sticker: sticker, videoSize: videoSize)
+            applyDriftUpAnimation(to: layer, duration: DURATION)
         case .DriftDown:
-            applyDriftDownAnimation(to: layer, sticker: sticker, videoSize: videoSize)
+            applyDriftDownAnimation(to: layer, duration: DURATION)
         case .DriftLeft:
-            applyDriftLeftAnimation(to: layer, sticker: sticker, videoSize: videoSize)
+            applyDriftLeftAnimation(to: layer, duration: DURATION)
         case .DriftRight:
-            applyDriftRightAnimation(to: layer, sticker: sticker, videoSize: videoSize)
+            applyDriftRightAnimation(to: layer, duration: DURATION)
         case .Fade:
-            applyFadeAnimation(to: layer)
+            applyFadeAnimation(to: layer, duration: DURATION)
         case .Scale:
-            applyScaleAnimation(to: layer)
+            applyScaleAnimation(to: layer, duration: DURATION)
         case .None:
             // No animation
             break
         }
     }
     
-    // MARK: - Reveal Animations
+    // MARK: - Animation Helper Methods
     
-    private func applyRevealUpAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {
-        // Start from bottom, reveal upward
+    private func applyRevealUpAnimation(to layer: CALayer, duration: TimeInterval) {
         let maskLayer = CAShapeLayer()
         let initialPath = UIBezierPath(rect: CGRect(
             x: 0,
@@ -445,7 +482,7 @@ class VideoManager {
         let animation = CABasicAnimation(keyPath: "path")
         animation.fromValue = initialPath
         animation.toValue = finalPath
-        animation.duration = DURATION
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
@@ -454,8 +491,7 @@ class VideoManager {
         maskLayer.add(animation, forKey: "revealUp")
     }
     
-    private func applyRevealDownAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {
-        // Start from top, reveal downward
+    private func applyRevealDownAnimation(to layer: CALayer, duration: TimeInterval) {
         let maskLayer = CAShapeLayer()
         let initialPath = UIBezierPath(rect: CGRect(
             x: 0,
@@ -476,7 +512,7 @@ class VideoManager {
         let animation = CABasicAnimation(keyPath: "path")
         animation.fromValue = initialPath
         animation.toValue = finalPath
-        animation.duration = DURATION
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
@@ -485,8 +521,7 @@ class VideoManager {
         maskLayer.add(animation, forKey: "revealDown")
     }
     
-    private func applyRevealLeftAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {
-        // Start from right, reveal leftward
+    private func applyRevealLeftAnimation(to layer: CALayer, duration: TimeInterval) {
         let maskLayer = CAShapeLayer()
         let initialPath = UIBezierPath(rect: CGRect(
             x: layer.bounds.width,
@@ -507,7 +542,7 @@ class VideoManager {
         let animation = CABasicAnimation(keyPath: "path")
         animation.fromValue = initialPath
         animation.toValue = finalPath
-        animation.duration = DURATION
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
@@ -516,8 +551,7 @@ class VideoManager {
         maskLayer.add(animation, forKey: "revealLeft")
     }
     
-    private func applyRevealRightAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {
-        // Start from left, reveal rightward
+    private func applyRevealRightAnimation(to layer: CALayer, duration: TimeInterval) {
         let maskLayer = CAShapeLayer()
         let initialPath = UIBezierPath(rect: CGRect(
             x: 0,
@@ -538,7 +572,7 @@ class VideoManager {
         let animation = CABasicAnimation(keyPath: "path")
         animation.fromValue = initialPath
         animation.toValue = finalPath
-        animation.duration = DURATION
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
@@ -547,13 +581,11 @@ class VideoManager {
         maskLayer.add(animation, forKey: "revealRight")
     }
     
-    // MARK: - Drift Animations
-    
-    private func applyDriftUpAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {
+    private func applyDriftUpAnimation(to layer: CALayer, duration: TimeInterval) {
         let animation = CABasicAnimation(keyPath: "position.y")
         animation.fromValue = layer.position.y + 100
         animation.toValue = layer.position.y
-        animation.duration = DURATION
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
@@ -562,11 +594,11 @@ class VideoManager {
         layer.add(animation, forKey: "driftUp")
     }
     
-    private func applyDriftDownAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {
+    private func applyDriftDownAnimation(to layer: CALayer, duration: TimeInterval) {
         let animation = CABasicAnimation(keyPath: "position.y")
         animation.fromValue = layer.position.y - 100
         animation.toValue = layer.position.y
-        animation.duration = DURATION
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
@@ -575,11 +607,11 @@ class VideoManager {
         layer.add(animation, forKey: "driftDown")
     }
     
-    private func applyDriftLeftAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {
+    private func applyDriftLeftAnimation(to layer: CALayer, duration: TimeInterval) {
         let animation = CABasicAnimation(keyPath: "position.x")
         animation.fromValue = layer.position.x + 100
         animation.toValue = layer.position.x
-        animation.duration = DURATION
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
@@ -588,11 +620,11 @@ class VideoManager {
         layer.add(animation, forKey: "driftLeft")
     }
     
-    private func applyDriftRightAnimation(to layer: CALayer, sticker: StickerModel, videoSize: CGSize) {
+    private func applyDriftRightAnimation(to layer: CALayer, duration: TimeInterval) {
         let animation = CABasicAnimation(keyPath: "position.x")
         animation.fromValue = layer.position.x - 100
         animation.toValue = layer.position.x
-        animation.duration = DURATION
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
@@ -601,13 +633,11 @@ class VideoManager {
         layer.add(animation, forKey: "driftRight")
     }
     
-    // MARK: - Basic Animations
-    
-    private func applyFadeAnimation(to layer: CALayer) {
+    private func applyFadeAnimation(to layer: CALayer, duration: TimeInterval) {
         let animation = CABasicAnimation(keyPath: "opacity")
         animation.fromValue = 0
-        animation.toValue = 1
-        animation.duration = DURATION
+        animation.toValue = layer.opacity
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
@@ -616,16 +646,17 @@ class VideoManager {
         layer.add(animation, forKey: "fade")
     }
     
-    private func applyScaleAnimation(to layer: CALayer) {
+    private func applyScaleAnimation(to layer: CALayer, duration: TimeInterval) {
         let animation = CABasicAnimation(keyPath: "transform.scale")
         animation.fromValue = 0
         animation.toValue = 1
-        animation.duration = DURATION
+        animation.duration = duration
         animation.timingFunction = CAMediaTimingFunction(name: .easeOut)
         animation.beginTime = AVCoreAnimationBeginTimeAtZero
         animation.isRemovedOnCompletion = false
         animation.fillMode = .forwards
         
+        // Apply to current transform
         layer.add(animation, forKey: "scale")
     }
     

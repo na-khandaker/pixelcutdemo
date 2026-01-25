@@ -9,15 +9,14 @@ import MobileCoreServices
 
 class ViewController: UIViewController {
     
-    
-    @IBOutlet weak var canvasAspectRatioConstraint: NSLayoutConstraint!
-    
     // MARK: - Properties
+    private var jsonConfig: StickerJSONConfig?
     private var currentSelectedAnimation: AnimationType = .RevealRight
     private var stickerManager = StickerManager()
     private var imageCounter = 0
     
     // MARK: - IBOutlets
+    @IBOutlet weak var canvasAspectRatioConstraint: NSLayoutConstraint!
     @IBOutlet weak var animationCollectionView: UICollectionView!
     @IBOutlet weak var canvasView: UIView!
     @IBOutlet weak var optionCollectionView: UICollectionView!
@@ -39,6 +38,9 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         canvasView.layer.masksToBounds = true
+        
+        // Load configuration from JSON
+        loadConfigurationFromJSON()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -46,8 +48,10 @@ class ViewController: UIViewController {
         setupGestures()
         
         if stickerManager.allStickers.isEmpty {
-            createInitialStickers()
+            //createInitialStickers()
+            createStickersFromJSON()
         }
+        
         animateAllStickers()
     }
     
@@ -68,11 +72,11 @@ class ViewController: UIViewController {
     }
     
     // MARK: - Initial Stickers Creation
-    private func createInitialStickers() {
-        createEdgeLines()
-        createInitialImage()
-        createInitialText()
-    }
+//    private func createInitialStickers() {
+//        createEdgeLines()
+//        createInitialImage()
+//        createInitialText()
+//    }
 
     private func createInitialText() {
         let canvasBounds = canvasView.bounds
@@ -270,19 +274,18 @@ class ViewController: UIViewController {
             x: mainPosition.x,
             y: mainPosition.y + mainHeight
         )
-        
-        // Apply vertical flip (mirror effect)
-        var reflectionTransform = mainLayer.transform
+
+        //apply reflection rotation
+        let mainTransform = mainLayer.transform
+        let rotationAngle = atan2(mainTransform.m12, mainTransform.m11)
+        var reflectionTransform = CATransform3DIdentity
+        reflectionTransform = CATransform3DRotate(reflectionTransform, CGFloat(-rotationAngle), 0, 0, 1)
         reflectionTransform = CATransform3DScale(reflectionTransform, 1, -1, 1)
         reflectionLayer.transform = reflectionTransform
         
-        // Reduced opacity for reflection effect
-        reflectionLayer.opacity = 1//0.75
-        
-        // Mark as reflection layer (for hit testing)
+
+        reflectionLayer.opacity = 1
         reflectionLayer.name = "reflection_layer"
-        
-        // Set zPosition below the main layer
         reflectionLayer.zPosition = mainLayer.zPosition - 1
         
         // Add gradient mask for fade-out effect
@@ -309,7 +312,6 @@ class ViewController: UIViewController {
         // IMPORTANT: reversed because reflection is flipped
         gradientMask.startPoint = CGPoint(x: 0.5, y: 1.0)
         gradientMask.endPoint = CGPoint(x: 0.5, y: 0.0)
-
         reflectionLayer.mask = gradientMask
 
         
@@ -326,19 +328,21 @@ class ViewController: UIViewController {
         let mainPosition = mainLayer.position
         let mainHeight = mainLayer.bounds.height
         reflectionLayer.position = CGPoint(x: mainPosition.x, y: mainPosition.y + mainHeight)
-        
-        // Update transform to match main layer (with vertical flip)
-        var reflectionTransform = mainLayer.transform
+
+        let mainTransform = mainLayer.transform
+        let rotationAngle = atan2(mainTransform.m12, mainTransform.m11)
+        var reflectionTransform = CATransform3DIdentity
+        reflectionTransform = CATransform3DRotate(reflectionTransform, CGFloat(-rotationAngle), 0, 0, 1)
         reflectionTransform = CATransform3DScale(reflectionTransform, 1, -1, 1)
+        
+        // Apply scale if any from main transform
+        let scaleX = sqrt(mainTransform.m11 * mainTransform.m11 + mainTransform.m12 * mainTransform.m12)
+        let scaleY = sqrt(mainTransform.m21 * mainTransform.m21 + mainTransform.m22 * mainTransform.m22)
+        reflectionTransform = CATransform3DScale(reflectionTransform, scaleX, scaleY, 1)
         reflectionLayer.transform = reflectionTransform
-        
-        // Update opacity
+
         reflectionLayer.opacity = mainLayer.opacity //* 0.75
-        
-        // Update bounds
         reflectionLayer.bounds = mainLayer.bounds
-        
-        // Update zPosition
         reflectionLayer.zPosition = mainLayer.zPosition - 1
         
         // Update the gradient mask frame
@@ -836,37 +840,37 @@ extension ViewController: UICollectionViewDelegateFlowLayout {
 
 extension ViewController {
     // MARK: - Animation Methods (Updated to handle reflections)
-    private func animateAllStickers() {
-        // Animate edge lines
-        for sticker in stickerManager.lineStickers {
-            if let layer = sticker.layer, let edge = sticker.initialEdge {
-                animateLineGrowth(layer, edge: edge)
-                
-                // Also animate reflection if it exists
-                if let reflectionLayer = sticker.reflectionLayer {
-                    animateLineGrowth(reflectionLayer, edge: edge)
-                }
-            }
-        }
-        
-        // Animate all image, text, and shape stickers with current animation type
-        for sticker in stickerManager.allStickers {
-            if sticker.type != .line {
-                if let layer = sticker.layer {
-                    LayerBuilder.shared.applyAnimation(to: layer,
-                                                       animationType: currentSelectedAnimation,
-                                                       duration: DURATION)
-                }
-                
-                // Apply same animation to reflection layer
-                if let reflectionLayer = sticker.reflectionLayer {
-                    LayerBuilder.shared.applyAnimation(to: reflectionLayer,
-                                                       animationType: currentSelectedAnimation,
-                                                       duration: DURATION)
-                }
-            }
-        }
-    }
+//    private func animateAllStickers() {
+//        // Animate edge lines
+//        for sticker in stickerManager.lineStickers {
+//            if let layer = sticker.layer, let edge = sticker.initialEdge {
+//                animateLineGrowth(layer, edge: edge)
+//                
+//                // Also animate reflection if it exists
+//                if let reflectionLayer = sticker.reflectionLayer {
+//                    animateLineGrowth(reflectionLayer, edge: edge)
+//                }
+//            }
+//        }
+//        
+//        // Animate all image, text, and shape stickers with current animation type
+//        for sticker in stickerManager.allStickers {
+//            if sticker.type != .line {
+//                if let layer = sticker.layer {
+//                    LayerBuilder.shared.applyAnimation(to: layer,
+//                                                       animationType: currentSelectedAnimation,
+//                                                       duration: DURATION)
+//                }
+//                
+//                // Apply same animation to reflection layer
+//                if let reflectionLayer = sticker.reflectionLayer {
+//                    LayerBuilder.shared.applyAnimation(to: reflectionLayer,
+//                                                       animationType: currentSelectedAnimation,
+//                                                       duration: DURATION)
+//                }
+//            }
+//        }
+//    }
 
     private func animateLineGrowth(_ layer: CALayer, edge: Edge) {
         let animation = CABasicAnimation()
@@ -1122,3 +1126,390 @@ extension CALayer {
         }
     }
 }
+
+extension ViewController {
+    // MARK: - Load JSON Configuration
+        private func loadConfigurationFromJSON() {
+            guard let url = Bundle.main.url(forResource: "AppConfig", withExtension: "json") else {
+                print("JSON file not found")
+                return
+            }
+            
+            do {
+                let data = try Data(contentsOf: url)
+                let decoder = JSONDecoder()
+                jsonConfig = try decoder.decode(StickerJSONConfig.self, from: data)
+                
+                // Update global settings from JSON
+                if let animationSettings = jsonConfig?.animationSettings {
+                    if let defaultAnimation = animationSettings.defaultAnimation,
+                       let animationType = AnimationType(rawValue: defaultAnimation) {
+                        currentSelectedAnimation = animationType
+                    }
+                    
+                    if let defaultDuration = animationSettings.defaultDuration {
+                        // DURATION = defaultDuration // You might want to make DURATION a variable instead of constant
+                    }
+                    
+                    if let videoSize = animationSettings.videoSize {
+                        // videoSize = CGSize(width: videoSize.width, height: videoSize.height) // Adjust as needed
+                    }
+                }
+                
+            } catch {
+                print("Error decoding JSON: \(error)")
+            }
+        }
+        
+        // MARK: - Create Stickers from JSON
+        private func createStickersFromJSON() {
+            guard let config = jsonConfig else { return }
+            
+            for stickerConfig in config.stickers {
+                createSticker(from: stickerConfig)
+            }
+        }
+}
+
+extension ViewController {
+       
+        
+        private func createSticker(from config: StickerConfig) {
+            let relativePosition = CGPoint(x: config.relativePosition.x, y: config.relativePosition.y)
+            let size = CGSize(width: config.size.width, height: config.size.height)
+            let color = UIColor(hex: config.color ?? "#00000000")
+            
+            switch config.type.lowercased() {
+            case "line":
+                createLineSticker(from: config, position: relativePosition, size: size, color: color)
+            case "text":
+                createTextSticker(from: config, position: relativePosition, size: size, color: color)
+            case "image":
+                createImageSticker(from: config, position: relativePosition, size: size, color: color)
+            case "shape":
+                createShapeSticker(from: config, position: relativePosition, size: size, color: color)
+            default:
+                print("Unknown sticker type: \(config.type)")
+            }
+        }
+        
+        private func createLineSticker(from config: StickerConfig, position: CGPoint, size: CGSize, color: UIColor) {
+            let edge: Edge? = {
+                guard let edgeStr = config.initialEdge else { return nil }
+                switch edgeStr.lowercased() {
+                case "top": return .top
+                case "bottom": return .bottom
+                case "left": return .left
+                case "right": return .right
+                default: return nil
+                }
+            }()
+            
+            let lineConfig = LineStickerConfiguration(
+                relativePosition: position,
+                size: size,
+                color: color,
+                isHorizontal: config.isHorizontal,
+                initialEdge: edge,
+                lineWidth: config.lineWidth ?? 12.0,
+                zIndex: config.zIndex,
+                hasReflection: config.hasReflection,
+                opacity: config.opacity
+            )
+            
+            let lineSticker = StickerFactory.shared.createLineSticker(configuration: lineConfig)
+            lineSticker.rotation = config.rotation ?? 0
+            lineSticker.scale = config.scale ?? 1.0
+            addStickerToCanvas(lineSticker)
+        }
+        
+        private func createTextSticker(from config: StickerConfig, position: CGPoint, size: CGSize, color: UIColor) {
+            guard let text = config.text,
+                  let fontSize = config.fontSize else { return }
+            
+            let textColor = UIColor(hex: config.textColor ?? "#FFFFFF")
+            let backgroundColor = UIColor(hex: config.backgroundColor ?? "#00000000")
+            
+            let alignment: NSTextAlignment = {
+                guard let alignmentStr = config.textAlignment else { return .center }
+                switch alignmentStr.lowercased() {
+                case "left": return .left
+                case "right": return .right
+                case "center": return .center
+                case "justified": return .justified
+                default: return .center
+                }
+            }()
+            
+            let textConfig = TextStickerConfiguration(
+                relativePosition: position,
+                size: size,
+                text: text,
+                fontSize: fontSize,
+                fontName: config.fontName,
+                textColor: textColor,
+                backgroundColor: backgroundColor,
+                zIndex: config.zIndex,
+                hasReflection: config.hasReflection,
+                opacity: config.opacity
+            )
+            
+            let textSticker = StickerFactory.shared.createTextSticker(configuration: textConfig)
+            textSticker.textAlignment = alignment
+            textSticker.rotation = config.rotation ?? 0
+            textSticker.scale = config.scale ?? 1.0
+            addStickerToCanvas(textSticker)
+        }
+        
+        private func createImageSticker(from config: StickerConfig, position: CGPoint, size: CGSize, color: UIColor) {
+            guard let imageName = config.imageName,
+                  let image = UIImage(named: imageName) else {
+                print("Image not found: \(config.imageName ?? "unknown")")
+                return
+            }
+            
+            let imageConfig = ImageStickerConfiguration(
+                relativePosition: position,
+                size: size,
+                image: image,
+                color: color,
+                zIndex: config.zIndex,
+                hasReflection: config.hasReflection,
+                opacity: config.opacity
+            )
+            
+            let imageSticker = StickerFactory.shared.createImageSticker(configuration: imageConfig)
+            imageSticker.rotation = config.rotation ?? 0
+            imageSticker.scale = config.scale ?? 1.0
+            addStickerToCanvas(imageSticker)
+        }
+        
+        private func createShapeSticker(from config: StickerConfig, position: CGPoint, size: CGSize, color: UIColor) {
+            let shapeType: ShapeType = {
+                guard let shapeStr = config.shapeType else { return .rectangle }
+                switch shapeStr.lowercased() {
+                case "circle": return .circle
+                case "rectangle": return .rectangle
+                //case "rounded": return .rounded
+                default: return .rectangle
+                }
+            }()
+            
+            let shapeConfig = ShapeStickerConfiguration(
+                relativePosition: position,
+                size: size,
+                color: color,
+                shapeType: shapeType,
+                cornerRadius: config.cornerRadius ?? 0,
+                zIndex: config.zIndex,
+                hasReflection: config.hasReflection,
+                opacity: config.opacity
+            )
+            
+            let shapeSticker = StickerFactory.shared.createShapeSticker(configuration: shapeConfig)
+            shapeSticker.rotation = config.rotation ?? 0
+            shapeSticker.scale = config.scale ?? 1.0
+            addStickerToCanvas(shapeSticker)
+        }
+        
+        // MARK: - Update Animation Methods to Use JSON Config
+        private func animateAllStickers() {
+            guard let config = jsonConfig else {
+                // Fallback to default animation
+                animateWithDefaultSettings()
+                return
+            }
+            
+            for sticker in stickerManager.allStickers {
+                if let stickerConfig = config.stickers.first(where: { $0.id == sticker.id }) {
+                    animateSticker(sticker, with: stickerConfig)
+                } else {
+                    // Apply default animation
+                    animateWithDefaultAnimation(to: sticker)
+                }
+            }
+        }
+        
+        private func animateSticker(_ sticker: StickerModel, with config: StickerConfig) {
+            // Determine animation type
+            let animationType: AnimationType
+            if let animationName = config.animation,
+               let type = AnimationType(rawValue: animationName) {
+                animationType = type
+            } else if let defaultAnim = jsonConfig?.animationSettings?.defaultAnimation,
+                      let type = AnimationType(rawValue: defaultAnim) {
+                animationType = type
+            } else {
+                animationType = currentSelectedAnimation
+            }
+            
+            // Determine duration
+            let duration = config.animationDuration ??
+                jsonConfig?.animationSettings?.defaultDuration ??
+                DURATION
+            
+            // Apply animation to main layer
+            if let layer = sticker.layer {
+                LayerBuilder.shared.applyAnimation(to: layer,
+                                                   animationType: animationType,
+                                                   duration: duration)
+            }
+            
+            // Apply animation to reflection layer
+            if let reflectionLayer = sticker.reflectionLayer {
+                LayerBuilder.shared.applyAnimation(to: reflectionLayer,
+                                                   animationType: animationType,
+                                                   duration: duration)
+            }
+        }
+        
+        private func animateWithDefaultAnimation(to sticker: StickerModel) {
+            if sticker.type == .line,
+               let lineSticker = sticker as? LineStickerModel,
+               let layer = lineSticker.layer,
+               let edge = lineSticker.initialEdge {
+                animateLineGrowth(layer, edge: edge)
+                
+                if let reflectionLayer = lineSticker.reflectionLayer {
+                    animateLineGrowth(reflectionLayer, edge: edge)
+                }
+            } else if sticker.type != .line {
+                if let layer = sticker.layer {
+                    LayerBuilder.shared.applyAnimation(to: layer,
+                                                       animationType: currentSelectedAnimation,
+                                                       duration: DURATION)
+                }
+                
+                if let reflectionLayer = sticker.reflectionLayer {
+                    LayerBuilder.shared.applyAnimation(to: reflectionLayer,
+                                                       animationType: currentSelectedAnimation,
+                                                       duration: DURATION)
+                }
+            }
+        }
+        
+        private func animateWithDefaultSettings() {
+            // Animate edge lines
+            for sticker in stickerManager.lineStickers {
+                if let layer = sticker.layer, let edge = sticker.initialEdge {
+                    animateLineGrowth(layer, edge: edge)
+                    
+                    if let reflectionLayer = sticker.reflectionLayer {
+                        animateLineGrowth(reflectionLayer, edge: edge)
+                    }
+                }
+            }
+            
+            // Animate all other stickers
+            for sticker in stickerManager.allStickers {
+                if sticker.type != .line {
+                    if let layer = sticker.layer {
+                        LayerBuilder.shared.applyAnimation(to: layer,
+                                                           animationType: currentSelectedAnimation,
+                                                           duration: DURATION)
+                    }
+                    
+                    if let reflectionLayer = sticker.reflectionLayer {
+                        LayerBuilder.shared.applyAnimation(to: reflectionLayer,
+                                                           animationType: currentSelectedAnimation,
+                                                           duration: DURATION)
+                    }
+                }
+            }
+        }
+        
+        // Remove the old createInitialStickers method since we're using JSON
+        private func createInitialStickers() {
+            // This is now handled by createStickersFromJSON()
+            // You can remove this method or keep it as a fallback
+            createStickersFromJSON()
+        }
+        
+        // ... rest of your existing code ...
+    }
+
+
+//{
+//  "id": "line_top_1",
+//  "type": "line",
+//  "relativePosition": {
+//    "x": 0,
+//    "y": 0.012
+//  },
+//  "size": {
+//    "width": 1,
+//    "height": 12
+//  },
+//  "color": "#007AFF",
+//  "isHorizontal": true,
+//  "initialEdge": "top",
+//  "lineWidth": 12.0,
+//  "zIndex": 0,
+//  "hasReflection": false,
+//  "opacity": 1.0,
+//  "animation": "RevealRight",
+//  "animationDuration": 1.2
+//},
+//{
+//  "id": "line_bottom_1",
+//  "type": "line",
+//  "relativePosition": {
+//    "x": 1,
+//    "y": 0.988
+//  },
+//  "size": {
+//    "width": 1,
+//    "height": 12
+//  },
+//  "color": "#FF3B30",
+//  "isHorizontal": true,
+//  "initialEdge": "bottom",
+//  "lineWidth": 12.0,
+//  "zIndex": 1,
+//  "hasReflection": false,
+//  "opacity": 1.0,
+//  "animation": "RevealLeft",
+//  "animationDuration": 1.2
+//},
+//{
+//  "id": "line_left_1",
+//  "type": "line",
+//  "relativePosition": {
+//    "x": 0.012,
+//    "y": 0
+//  },
+//  "size": {
+//    "width": 12,
+//    "height": 1
+//  },
+//  "color": "#34C759",
+//  "isHorizontal": false,
+//  "initialEdge": "left",
+//  "lineWidth": 12.0,
+//  "zIndex": 2,
+//  "hasReflection": false,
+//  "opacity": 1.0,
+//  "animation": "RevealDown",
+//  "animationDuration": 1.2
+//},
+//{
+//  "id": "line_right_1",
+//  "type": "line",
+//  "relativePosition": {
+//    "x": 0.988,
+//    "y": 1
+//  },
+//  "size": {
+//    "width": 12,
+//    "height": 1
+//  },
+//  "color": "#FF9500",
+//  "isHorizontal": false,
+//  "initialEdge": "right",
+//  "lineWidth": 12.0,
+//  "zIndex": 3,
+//  "hasReflection": false,
+//  "opacity": 1.0,
+//  "animation": "RevealUp",
+//  "animationDuration": 1.2
+//},
