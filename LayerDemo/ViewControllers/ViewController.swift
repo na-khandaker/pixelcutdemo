@@ -567,6 +567,9 @@ class ViewController: UIViewController {
         let translation = gesture.translation(in: canvasView)
         
         if gesture.state == .began {
+//            if selectedSticker.type != .line {
+//                layer.removeAllAnimations()
+//            }
             layer.removeAllAnimations()
             if let reflectionLayer = selectedSticker.reflectionLayer {
                 reflectionLayer.removeAllAnimations()
@@ -901,10 +904,10 @@ extension ViewController: UICollectionViewDataSource {
         } else if collectionView == optionCollectionView {
             switch indexPath.item {
             case 0:
-                cell.nameLabel.text = "Animate"
+                cell.nameLabel.text = "Play"
                 cell.nameLabel.textColor = .systemGreen
             case 1:
-                cell.nameLabel.text = "Play"
+                cell.nameLabel.text = "Reset"
                 cell.nameLabel.textColor = .systemBlue
             case 2:
                 cell.nameLabel.text = "Resize"
@@ -931,8 +934,9 @@ extension ViewController: UICollectionViewDelegate {
             switch indexPath.item {
             case 0:
                 //"Animate"
-                animationHolderView.isHidden = false
-                optionCollectionView.isHidden = true
+//                animationHolderView.isHidden = false
+//                optionCollectionView.isHidden = true
+                resetAndReanimate()
             case 1:
                 //"Play"
                 playTapped(UIButton())
