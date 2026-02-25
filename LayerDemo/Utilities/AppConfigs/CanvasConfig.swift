@@ -13,11 +13,45 @@ struct CanvasConfig: Codable {
     let backgroundColor: String?
 }
 
+//struct StickerConfig: Codable {
+//    let id: String
+//    let type: String
+//    let relativePosition: PositionConfig
+//    let size: SizeConfig
+//    let color: String?
+//    let isHorizontal: Bool?
+//    let initialEdge: String?
+//    let lineWidth: CGFloat?
+//    let zIndex: Int
+//    let hasReflection: Bool
+//    let opacity: Float
+//    let animation: String?
+//    let animationDuration: TimeInterval?
+//    let rotation: CGFloat?
+//    let scale: CGFloat?
+//    
+//    // Text specific
+//    let text: String?
+//    let fontSize: CGFloat?
+//    let fontName: String?
+//    let textColor: String?
+//    let backgroundColor: String?
+//    let textAlignment: String?
+//    
+//    // Image specific
+//    let imageName: String?
+//    
+//    // Shape specific
+//    let shapeType: String?
+//    let cornerRadius: CGFloat?
+//}
+
 struct StickerConfig: Codable {
     let id: String
     let type: String
     let relativePosition: PositionConfig
-    let size: SizeConfig
+    let size: SizeConfig?           // For images, shapes (absolute pixels)
+    let fontSize: CGFloat?          // For text (relative 0-1)
     let color: String?
     let isHorizontal: Bool?
     let initialEdge: String?
@@ -27,12 +61,12 @@ struct StickerConfig: Codable {
     let opacity: Float
     let animation: String?
     let animationDuration: TimeInterval?
+    let animationStartTime: TimeInterval?  // NEW
     let rotation: CGFloat?
     let scale: CGFloat?
     
     // Text specific
     let text: String?
-    let fontSize: CGFloat?
     let fontName: String?
     let textColor: String?
     let backgroundColor: String?

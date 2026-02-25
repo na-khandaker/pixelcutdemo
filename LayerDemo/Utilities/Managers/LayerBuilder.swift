@@ -8,13 +8,17 @@
 import UIKit
 
 // MARK: - Protocol for Layer Builder
-protocol LayerBuilderProtocol {
-    func createLayer(from sticker: StickerModel, canvasSize: CGSize) -> CALayer
-    func applyAnimation(to layer: CALayer, animationType: AnimationType, duration: TimeInterval)
-}
+//protocol LayerBuilderProtocol {
+//    func createLayer(from sticker: StickerModel, canvasSize: CGSize) -> CALayer
+//    func applyAnimation(to layer: CALayer,
+//                        animationType: AnimationType,
+//                        duration: TimeInterval,
+//                        startTime: TimeInterval,
+//                        isReflectionLayer: Bool = false)
+//}
 
 // MARK: - Layer Builder with Reflection Support
-class LayerBuilder: LayerBuilderProtocol {
+class LayerBuilder {
     static let shared = LayerBuilder()
     var currentCanvasSize: CGSize = .zero
     
@@ -591,7 +595,11 @@ extension LayerBuilder {
 
 // MARK: - Animation Methods in LayerBuilder (Updated)
 extension LayerBuilder {
-    func applyAnimation(to layer: CALayer, animationType: AnimationType, duration: TimeInterval) {
+    func applyAnimation(to layer: CALayer,
+                       animationType: AnimationType,
+                       duration: TimeInterval,
+                       startTime: TimeInterval = 0,
+                       isReflectionLayer: Bool = false) {
         // Check if this is a reflection layer
         let isReflectionLayer = layer.name == "reflection_layer"
         

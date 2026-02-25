@@ -26,13 +26,15 @@ class StickerFactory: StickerFactoryProtocol {
             text: configuration.text,
             relativePosition: configuration.relativePosition,
             size: configuration.size,
-            fontSize: configuration.fontSize,
+            fontSize: configuration.fontSize ?? 18,
             fontName: configuration.fontName,
             textColor: configuration.textColor,
             backgroundColor: configuration.color,
             zIndex: configuration.zIndex,
             hasReflection: configuration.hasReflection,
-            opacity: configuration.opacity
+            opacity: configuration.opacity,
+            animationType: configuration.animationType,
+            animationDuration: configuration.animationDuration
         )
     }
     
@@ -44,7 +46,9 @@ class StickerFactory: StickerFactoryProtocol {
             color: configuration.color,
             zIndex: configuration.zIndex,
             hasReflection: configuration.hasReflection,
-            opacity: configuration.opacity
+            opacity: configuration.opacity,
+            animationType: configuration.animationType,
+            animationDuration: configuration.animationDuration
         )
     }
     
@@ -57,7 +61,9 @@ class StickerFactory: StickerFactoryProtocol {
             cornerRadius: configuration.cornerRadius,
             zIndex: configuration.zIndex,
             hasReflection: configuration.hasReflection,
-            opacity: configuration.opacity
+            opacity: configuration.opacity,
+            animationType: configuration.animationType,
+            animationDuration: configuration.animationDuration
         )
     }
     
@@ -73,7 +79,9 @@ class StickerFactory: StickerFactoryProtocol {
             lineWidth: configuration.lineWidth,
             zIndex: configuration.zIndex,
             hasReflection: configuration.hasReflection,
-            opacity: configuration.opacity
+            opacity: configuration.opacity,
+            animationType: configuration.animationType,
+            animationDuration: configuration.animationDuration
         )
     }
     
@@ -86,5 +94,80 @@ class StickerFactory: StickerFactoryProtocol {
         case .left: return .systemGreen
         case .right: return .systemOrange
         }
+    }
+}
+
+extension StickerFactory {
+    func createTextSticker(configuration: TextStickerConfiguration, canvasSize: CGSize) -> TextStickerModel {
+        // Calculate absolute font size from relative size
+        let relativeFontSize = configuration.fontSize ?? 0.05
+        let absoluteFontSize = relativeFontSize * min(canvasSize.width, canvasSize.height)
+        
+        // Calculate text bounding box
+        let textSize = calculateTextSize(
+            text: configuration.text,
+            fontName: configuration.fontName ?? "Helvetica",
+            fontSize: absoluteFontSize,
+            maxWidth: canvasSize.width * 0.8
+        )
+        
+        return TextStickerModel(
+            text: configuration.text,
+            relativePosition: configuration.relativePosition,
+            size: textSize,
+            fontSize: absoluteFontSize,
+            fontName: configuration.fontName,
+            textColor: configuration.textColor,
+            backgroundColor: configuration.color,
+            zIndex: configuration.zIndex,
+            hasReflection: configuration.hasReflection,
+            opacity: configuration.opacity,
+            animationType: configuration.animationType,
+            animationDuration: configuration.animationDuration,
+            animationStartTime: configuration.animationStartTime
+        )
+    }
+    
+    func createImageSticker(configuration: ImageStickerConfiguration, canvasSize: CGSize) -> ImageStickerModel {
+        // Calculate absolute size from relative if needed
+        var size = configuration.size
+        
+        if size == .zero, let relativeSize = configuration.relativeSize {
+            size = CGSize(
+                width: relativeSize.width * canvasSize.width,
+                height: relativeSize.height * canvasSize.height
+            )
+        }
+        
+        return ImageStickerModel(
+            image: configuration.image,
+            relativePosition: configuration.relativePosition,
+            size: size,
+            color: configuration.color,
+            zIndex: configuration.zIndex,
+            hasReflection: configuration.hasReflection,
+            opacity: configuration.opacity,
+            animationType: configuration.animationType,
+            animationDuration: configuration.animationDuration,
+            animationStartTime: configuration.animationStartTime
+        )
+    }
+    
+    private func calculateTextSize(text: String, fontName: String, fontSize: CGFloat, maxWidth: CGFloat) -> CGSize {
+        let font = UIFont(name: fontName, size: fontSize) ?? UIFont.systemFont(ofSize: fontSize)
+        
+        let constraintRect = CGSize(width: maxWidth, height: .greatestFiniteMagnitude)
+        let boundingBox = text.boundingRect(
+            with: constraintRect,
+            options: .usesLineFragmentOrigin,
+            attributes: [.font: font],
+            context: nil
+        )
+        
+        // Add padding
+        return CGSize(
+            width: ceil(boundingBox.width) + 20,
+            height: ceil(boundingBox.height) + 20
+        )
     }
 }

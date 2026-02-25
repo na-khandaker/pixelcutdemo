@@ -4,73 +4,65 @@
     "backgroundColor": "#FFFFFF"
   },
   "stickers": [
-      {
-        "id": "image_1",
-        "type": "image",
-        "relativePosition": {
-          "x": 0.5,
-          "y": 0.5
+    {
+      "id": "image_1",
+      "type": "image",
+      "relativePosition": {
+        "x": 0.5,
+        "y": 0.4
       },
-      "size": {
-        "width": 150,
-        "height": 150
+      "relativeSize": {
+        "width": 0.8,
+        "height": 0.6
       },
-      "imageName": "testImage",
-      "color": "#00000000",
-      "zIndex": 10,
-      "hasReflection": true,
+      "imageName": "potrait1",
+      "zIndex": 1,
+      "hasReflection": false,
       "opacity": 1.0,
-      "animation": "Fade",
+      "animation": "RevealDown",
       "animationDuration": 1.5,
-      "rotation": 0.0,
-      "scale": 1.0
+      "animationStartTime": 0.0,
+      "rotation": 0.0
     },
     {
       "id": "text_1",
       "type": "text",
       "relativePosition": {
         "x": 0.5,
-        "y": 0.3
+        "y": 0.9
       },
-      "size": {
-        "width": 300,
-        "height": 80
-      },
-      "text": "Hello World!",
-      "fontSize": 36,
+      "fontSize": 0.02,
+      "text": "New Drop New Drop",
       "fontName": "Helvetica-Bold",
       "textColor": "#0000FF",
-      "backgroundColor": "#00000000",
       "textAlignment": "center",
-      "zIndex": 20,
-      "hasReflection": true,
+      "zIndex": 2,
+      "hasReflection": false,
       "opacity": 1.0,
-      "animation": "Scale",
+      "animation": "DriftUp",
       "animationDuration": 1.2,
-      "rotation": 0.0,
-      "scale": 1.0
+      "animationStartTime": 0.0,
+      "rotation": 0.0
     },
     {
-      "id": "shape_1",
-      "type": "shape",
+      "id": "image_2",
+      "type": "image",
       "relativePosition": {
-        "x": 0.7,
-        "y": 0.7
+        "x": 0.8,
+        "y": 0.8
       },
-      "size": {
-        "width": 100,
-        "height": 100
+      "relativeSize": {
+        "width": 0.09,
+        "height": 0.05
       },
-      "color": "#FF6B6B",
-      "shapeType": "circle",
-      "cornerRadius": 50,
-      "zIndex": 15,
-      "hasReflection": true,
-      "opacity": 0.8,
-      "animation": "DriftUp",
+      "imageName": "sticker1",
+      "zIndex": 3,
+      "hasReflection": false,
+      "opacity": 1.0,
+      "animation": "Scale",
       "animationDuration": 1.5,
-      "rotation": 0.0,
-      "scale": 1.0
+      "animationStartTime": 1.0,
+      "rotation": 0.0
     }
   ],
   "animationSettings": {

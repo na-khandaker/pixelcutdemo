@@ -7,55 +7,44 @@
 
 import UIKit
 
-// MARK: - Base Configuration
 class StickerConfiguration {
     var relativePosition: CGPoint
     var size: CGSize
+    var relativeSize: CGSize?      // For relative sizing (0-1)
     var color: UIColor?
     var zIndex: Int = 0
     var hasReflection: Bool = false
     var opacity: Float = 1.0
+    let animationType: AnimationType?
+    let animationDuration: TimeInterval?
+    let animationStartTime: TimeInterval?
     
     init(relativePosition: CGPoint,
          size: CGSize,
+         relativeSize: CGSize? = nil,
          color: UIColor? = nil,
          zIndex: Int = 0,
          hasReflection: Bool = false,
-         opacity: Float = 1.0) {
+         opacity: Float = 1.0,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil,
+         animationStartTime: TimeInterval? = nil) {
         self.relativePosition = relativePosition
         self.size = size
+        self.relativeSize = relativeSize
         self.color = color
         self.zIndex = zIndex
         self.hasReflection = hasReflection
         self.opacity = opacity
+        self.animationType = animationType
+        self.animationDuration = animationDuration
+        self.animationStartTime = animationStartTime
     }
 }
 
-// MARK: - Image Sticker Configuration
-class ImageStickerConfiguration: StickerConfiguration {
-    var image: UIImage
-    
-    init(relativePosition: CGPoint,
-         size: CGSize,
-         image: UIImage,
-         color: UIColor? = nil,
-         zIndex: Int = 0,
-         hasReflection: Bool = false,
-         opacity: Float = 1.0) {
-        self.image = image
-        super.init(relativePosition: relativePosition,
-                   size: size,
-                   color: color,
-                   zIndex: zIndex,
-                   hasReflection: hasReflection,
-                   opacity: opacity)
-    }
-}
-
-// MARK: - Text Sticker Configuration
 class TextStickerConfiguration: StickerConfiguration {
     var text: String
-    var fontSize: CGFloat
+    var fontSize: CGFloat?          // Relative font size (0-1)
     var fontName: String?
     var textColor: UIColor
     var textAlignment: NSTextAlignment = .center
@@ -63,13 +52,17 @@ class TextStickerConfiguration: StickerConfiguration {
     init(relativePosition: CGPoint,
          size: CGSize,
          text: String,
-         fontSize: CGFloat = 36,
+         fontSize: CGFloat? = nil,
          fontName: String? = nil,
          textColor: UIColor = .white,
          backgroundColor: UIColor? = nil,
          zIndex: Int = 10,
          hasReflection: Bool = true,
-         opacity: Float = 1.0) {
+         opacity: Float = 1.0,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil,
+         animationStartTime: TimeInterval? = nil) {
+        
         self.text = text
         self.fontSize = fontSize
         self.fontName = fontName
@@ -80,10 +73,40 @@ class TextStickerConfiguration: StickerConfiguration {
                    color: backgroundColor,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
-                   opacity: opacity)
+                   opacity: opacity,
+                   animationType: animationType,
+                   animationDuration: animationDuration,
+                   animationStartTime: animationStartTime)
     }
 }
 
+class ImageStickerConfiguration: StickerConfiguration {
+    var image: UIImage
+    
+    init(relativePosition: CGPoint,
+         size: CGSize,
+         image: UIImage,
+         relativeSize: CGSize? = nil,
+         color: UIColor? = nil,
+         zIndex: Int = 0,
+         hasReflection: Bool = false,
+         opacity: Float = 1.0,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil,
+         animationStartTime: TimeInterval? = nil) {
+        self.image = image
+        super.init(relativePosition: relativePosition,
+                   size: size,
+                   relativeSize: relativeSize,
+                   color: color,
+                   zIndex: zIndex,
+                   hasReflection: hasReflection,
+                   opacity: opacity,
+                   animationType: animationType,
+                   animationDuration: animationDuration,
+                   animationStartTime: animationStartTime)
+    }
+}
 // MARK: - Shape Sticker Configuration
 class ShapeStickerConfiguration: StickerConfiguration {
     var shapeType: ShapeType = .rectangle
@@ -96,7 +119,9 @@ class ShapeStickerConfiguration: StickerConfiguration {
          cornerRadius: CGFloat = 0,
          zIndex: Int = 0,
          hasReflection: Bool = false,
-         opacity: Float = 1.0) {
+         opacity: Float = 1.0,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil) {
         self.shapeType = shapeType
         self.cornerRadius = cornerRadius
         
@@ -105,7 +130,9 @@ class ShapeStickerConfiguration: StickerConfiguration {
                    color: color,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
-                   opacity: opacity)
+                   opacity: opacity,
+                   animationType: animationType,
+                   animationDuration: animationDuration)
     }
 }
 
@@ -123,7 +150,9 @@ class LineStickerConfiguration: StickerConfiguration {
          lineWidth: CGFloat = 12.0,
          zIndex: Int = 0,
          hasReflection: Bool = false,
-         opacity: Float = 1.0) {
+         opacity: Float = 1.0,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil) {
         self.isHorizontal = isHorizontal
         self.initialEdge = initialEdge
         self.lineWidth = lineWidth
@@ -133,6 +162,8 @@ class LineStickerConfiguration: StickerConfiguration {
                    color: color,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
-                   opacity: opacity)
+                   opacity: opacity,
+                   animationType: animationType,
+                   animationDuration: animationDuration)
     }
 }

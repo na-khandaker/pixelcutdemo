@@ -27,6 +27,11 @@ class StickerModel {
     var isHorizontal: Bool? = nil
     var initialEdge: Edge? = nil
     
+    // Animation properties
+    var animationType: AnimationType?
+    var animationDuration: TimeInterval?
+    var animationStartTime: TimeInterval?
+    
     init(id: String = UUID().uuidString,
          type: StickerType,
          relativePosition: CGPoint,
@@ -36,7 +41,10 @@ class StickerModel {
          hasReflection: Bool = false,
          opacity: Float = 1.0,
          isHorizontal: Bool? = nil,
-         initialEdge: Edge? = nil) {
+         initialEdge: Edge? = nil,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil,
+         animationStartTime: TimeInterval? = nil) {
         self.id = id
         self.type = type
         self.relativePosition = relativePosition
@@ -47,38 +55,16 @@ class StickerModel {
         self.opacity = opacity
         self.isHorizontal = isHorizontal
         self.initialEdge = initialEdge
-    }
-}
-
-// MARK: - Image Sticker Model
-class ImageStickerModel: StickerModel {
-    var image: UIImage
-    
-    init(id: String = UUID().uuidString,
-         image: UIImage,
-         relativePosition: CGPoint,
-         size: CGSize,
-         color: UIColor? = nil,
-         zIndex: Int = 0,
-         hasReflection: Bool = false,
-         opacity: Float = 1.0) {
-        self.image = image
-        
-        super.init(id: id,
-                   type: .image,
-                   relativePosition: relativePosition,
-                   size: size,
-                   color: color,
-                   zIndex: zIndex,
-                   hasReflection: hasReflection,
-                   opacity: opacity)
+        self.animationType = animationType
+        self.animationDuration = animationDuration
+        self.animationStartTime = animationStartTime
     }
 }
 
 // MARK: - Text Sticker Model
 class TextStickerModel: StickerModel {
     var text: String
-    var fontSize: CGFloat
+    var fontSize: CGFloat  // Store absolute font size
     var fontName: String?
     var textColor: UIColor
     var textAlignment: NSTextAlignment = .center
@@ -93,7 +79,10 @@ class TextStickerModel: StickerModel {
          backgroundColor: UIColor? = nil,
          zIndex: Int = 10,
          hasReflection: Bool = true,
-         opacity: Float = 1.0) {
+         opacity: Float = 1.0,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil,
+         animationStartTime: TimeInterval? = nil) {
         self.text = text
         self.fontSize = fontSize
         self.fontName = fontName
@@ -106,7 +95,41 @@ class TextStickerModel: StickerModel {
                    color: backgroundColor,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
-                   opacity: opacity)
+                   opacity: opacity,
+                   animationType: animationType,
+                   animationDuration: animationDuration,
+                   animationStartTime: animationStartTime)
+    }
+}
+
+// MARK: - Image Sticker Model
+class ImageStickerModel: StickerModel {
+    var image: UIImage
+    
+    init(id: String = UUID().uuidString,
+         image: UIImage,
+         relativePosition: CGPoint,
+         size: CGSize,
+         color: UIColor? = nil,
+         zIndex: Int = 0,
+         hasReflection: Bool = false,
+         opacity: Float = 1.0,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil,
+         animationStartTime: TimeInterval? = nil) {
+        self.image = image
+        
+        super.init(id: id,
+                   type: .image,
+                   relativePosition: relativePosition,
+                   size: size,
+                   color: color,
+                   zIndex: zIndex,
+                   hasReflection: hasReflection,
+                   opacity: opacity,
+                   animationType: animationType,
+                   animationDuration: animationDuration,
+                   animationStartTime: animationStartTime)
     }
 }
 
@@ -123,7 +146,9 @@ class ShapeStickerModel: StickerModel {
          cornerRadius: CGFloat = 0,
          zIndex: Int = 0,
          hasReflection: Bool = false,
-         opacity: Float = 1.0) {
+         opacity: Float = 1.0,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil) {
         self.shapeType = shapeType
         self.cornerRadius = cornerRadius
         
@@ -134,7 +159,9 @@ class ShapeStickerModel: StickerModel {
                    color: color,
                    zIndex: zIndex,
                    hasReflection: hasReflection,
-                   opacity: opacity)
+                   opacity: opacity,
+                   animationType: animationType,
+                   animationDuration: animationDuration)
     }
 }
 
@@ -151,7 +178,9 @@ class LineStickerModel: StickerModel {
          lineWidth: CGFloat = 12.0,
          zIndex: Int = 0,
          hasReflection: Bool = false,
-         opacity: Float = 1.0) {
+         opacity: Float = 1.0,
+         animationType: AnimationType? = nil,
+         animationDuration: TimeInterval? = nil) {
         
         self.lineWidth = lineWidth
         super.init(id: id,
@@ -163,7 +192,9 @@ class LineStickerModel: StickerModel {
                    hasReflection: hasReflection,
                    opacity: opacity,
                    isHorizontal: isHorizontal,
-                   initialEdge: initialEdge)
+                   initialEdge: initialEdge,
+                   animationType: animationType,
+                   animationDuration: animationDuration)
     }
 }
 
